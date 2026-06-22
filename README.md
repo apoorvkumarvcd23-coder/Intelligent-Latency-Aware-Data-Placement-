@@ -9,6 +9,10 @@ large "cloud" tier to minimise query latency.** Hot data is promoted to the edge
 cold data is demoted to the cloud. The system is fully containerised and runs with a
 single command.
 
+> 📖 **New here? Read [docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)** — a complete
+> guide that explains everything twice (once like you're five, once for real),
+> including the full implementation, how to run it, and how to give the demo.
+
 ---
 
 ## 1. The problem
