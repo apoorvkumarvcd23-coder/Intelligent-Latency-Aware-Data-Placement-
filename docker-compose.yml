@@ -1,0 +1,140 @@
+# =====================================================================
+#  Intelligent Latency-Aware Data Placement in Edge-Cloud Systems
+#  Lean, reliability-first stack (~5-7 small containers, ~4-4.5 GB RAM).
+#
+#   kafka      : access-log event bus (Spark Streaming source)        [KRaft]
+#   namenode   : HDFS metadata  ─┐ together = the "cloud" storage tier
+#   datanode   : HDFS blocks    ─┘ (auto-fallback to simulated store if down)
+#   redis      : the "edge" cache tier + shared metrics/state store
+#   engine     : Spark (local mode) — streaming + ML + placement + serving
+#   workload   : synthetic users (Zipfian, shifting hot-set)
+#   dashboard  : live Streamlit metrics UI
+# =====================================================================
+
+services:
+
+  kafka:
+    image: ${KAFKA_IMAGE}
+    container_name: lap-kafka
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=broker,controller
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@kafka:9093
+      - KAFKA_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+      - KAFKA_NUM_PARTITIONS=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    networks: [lapnet]
+
+  namenode:
+    image: ${HADOOP_NAMENODE_IMAGE}
+    container_name: lap-namenode
+    environment:
+      - CLUSTER_NAME=lap-cluster
+    env_file: ./hadoop.env
+    ports:
+      - "9870:9870"          # HDFS NameNode web UI + WebHDFS REST
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9870/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    networks: [lapnet]
+
+  datanode:
+    image: ${HADOOP_DATANODE_IMAGE}
+    container_name: lap-datanode
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    env_file: ./hadoop.env
+    depends_on:
+      namenode:
+        condition: service_healthy
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9864/ >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    networks: [lapnet]
+
+  redis:
+    image: ${REDIS_IMAGE}
+    container_name: lap-redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks: [lapnet]
+
+  engine:
+    build: ./services/placement_engine
+    container_name: lap-engine
+    # NOTE: only depends on kafka + redis (REQUIRED). HDFS is intentionally
+    # NOT a hard dependency so the CloudStore fallback can engage if it is down.
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "4040:4040"          # Spark UI (local mode driver)
+    volumes:
+      - ./config:/app/config:ro
+      - cloud_sim:/data/cloud           # simulated-cloud fallback store
+      - model_store:/app/model_store    # persisted MLlib model
+    networks: [lapnet]
+
+  workload:
+    build: ./services/workload_generator
+    container_name: lap-workload
+    depends_on:
+      kafka:
+        condition: service_healthy
+      engine:
+        condition: service_started
+    volumes:
+      - ./config:/app/config:ro
+    networks: [lapnet]
+
+  dashboard:
+    build: ./services/dashboard
+    container_name: lap-dashboard
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./config:/app/config:ro
+    networks: [lapnet]
+
+networks:
+  lapnet:
+    driver: bridge
+
+volumes:
+  namenode_data:
+  datanode_data:
+  cloud_sim:
+  model_store:

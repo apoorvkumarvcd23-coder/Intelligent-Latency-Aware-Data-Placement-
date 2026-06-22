@@ -1,0 +1,6 @@
+pyspark==3.5.1
+numpy==1.26.4
+kafka-python==2.0.2
+redis==5.0.4
+hdfs==2.7.3
+PyYAML==6.0.1

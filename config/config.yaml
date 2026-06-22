@@ -1,0 +1,47 @@
+# =====================================================================
+#  Intelligent Latency-Aware Data Placement — central configuration
+#  Every service reads this file. Tune the demo from one place.
+# =====================================================================
+
+kafka:
+  bootstrap_servers: "kafka:9092"
+  topic: "access-logs"
+
+cloud:                      # the "cloud" storage tier (HDFS)
+  backend: "auto"           # hdfs | simulated | auto  (auto = use HDFS, fall back if unreachable)
+  webhdfs_url: "http://namenode:9870"
+  hdfs_user: "root"
+  base_path: "/datasets"    # HDFS path that holds the seeded dataset files
+  simulated_path: "/data/cloud"   # local-volume path used by the simulated fallback
+  latency_ms: 80            # injected WAN latency to model cloud distance
+
+edge:                       # the "edge" storage tier (Redis cache)
+  redis_host: "redis"
+  redis_port: 6379
+  latency_ms: 2             # edge is fast/near the user
+  capacity: 30              # max number of datasets that fit at the edge
+
+datasets:
+  count: 200                # number of synthetic datasets ds_0001 .. ds_0200
+  size_kb: 64               # size of each dataset file
+
+placement:
+  top_k: 30                 # how many "hot" datasets to keep at the edge
+  window_seconds: 10        # streaming aggregation window
+  ema_alpha: 0.3            # smoothing factor for the EMA popularity baseline
+  decision_interval_seconds: 5    # how often the engine re-decides placement
+  predictor: "both"         # ema | ml | both  (which signal drives placement)
+
+ml:
+  retrain_interval_seconds: 30    # how often the MLlib model is retrained
+  min_samples: 40                 # minimum observations before first training
+
+workload:
+  rate_per_sec: 40          # access events emitted per second
+  zipf_s: 1.3               # Zipfian skew (higher = more concentrated hot set)
+  phase_seconds: 60         # how long before the hot set shifts (proves adaptation)
+  hot_set_size: 20          # how many datasets are "hot" within a phase
+
+metrics:
+  redis_key_prefix: "lap"
+  history_len: 300          # points of history kept for the dashboard charts

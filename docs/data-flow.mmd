@@ -1,0 +1,25 @@
+%% Per-decision-cycle data flow (sequence) — render at https://mermaid.live
+sequenceDiagram
+    autonumber
+    participant WG as Workload Gen
+    participant K as Kafka
+    participant EN as Placement Engine (Spark)
+    participant ML as MLlib model
+    participant ED as Edge (Redis)
+    participant CL as Cloud (HDFS)
+    participant DB as Dashboard
+
+    loop every decision_interval
+        WG->>K: publish access events (Zipfian)
+        EN->>K: poll micro-batch
+        EN->>EN: Spark windowed aggregation (counts, recency)
+        EN->>EN: update EMA baseline
+        EN->>ML: add labelled samples, (re)train periodically
+        ML-->>EN: predicted next-window demand
+        EN->>EN: pick top-K hot set (EMA vs ML)
+        EN->>CL: read bytes of newly-hot datasets
+        EN->>ED: PROMOTE hot, EVICT cold (migrations)
+        Note over EN,ED: serve path: HIT=Redis(~2ms), MISS=HDFS(+80ms)
+        EN->>ED: publish metrics snapshot
+        DB->>ED: read metrics + render charts
+    end
