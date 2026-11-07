@@ -1,5 +1,12 @@
 # Intelligent Latency-Aware Data Placement & Workload Optimization in Edge-Cloud Systems
 
+## December 2026 delivery
+
+The December v1 target hardens the existing placement lab with automated tests, strict backend policies and reproducible evaluation. WAN latency remains explicitly modelled.
+
+See the [implementation plan and acceptance checks](docs/IMPLEMENTATION_PLAN.md).
+The target is 31 December 2026; task completion requires verified evidence.
+
 **Big Data Systems — course project**
 *Hadoop HDFS · Apache Spark · Spark Streaming · Apache Kafka · Spark MLlib · Redis · Docker*
 
