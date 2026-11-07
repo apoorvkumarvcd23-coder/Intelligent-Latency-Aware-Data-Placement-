@@ -5,7 +5,8 @@
 The December v1 target hardens the existing placement lab with automated tests, strict backend policies and reproducible evaluation. WAN latency remains explicitly modelled.
 
 See the [implementation plan and acceptance checks](docs/IMPLEMENTATION_PLAN.md).
-The target is 31 December 2026; task completion requires verified evidence.
+The core demo target is **17 November 2026**; feature delivery and hardening
+continue through **31 December 2026**. Completion requires verified evidence.
 
 **Big Data Systems — course project**
 *Hadoop HDFS · Apache Spark · Spark Streaming · Apache Kafka · Spark MLlib · Redis · Docker*

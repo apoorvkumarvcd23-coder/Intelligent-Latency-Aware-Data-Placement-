@@ -1,5 +1,16 @@
 # Intelligent Latency-Aware Data Placement — December 2026 plan
 
+## Immediate core milestone — 17 November 2026
+
+The existing application becomes a resume-ready core within the next ten days:
+validated configuration/events, safe dataset paths, strict HDFS versus explicit
+fallback, a seeded phase-change workload, tests and an actual Kafka/Spark/Redis
+integration demonstration. Core work is 12 November, integration evidence on
+15 November and final acceptance on 17 November. Preserve honest modelled-WAN
+labels and inspect tracked runtime configuration privately. Multi-seed/LRU
+benchmarking, model persistence and replay/shutdown hardening follow afterwards
+through December; no measured improvement is claimed before the experiment.
+
 ## Source-grounded starting point
 
 Reviewed main `2452ddfede57a555e349ba7c606f210058b7a3ed`: README/architecture guide,
