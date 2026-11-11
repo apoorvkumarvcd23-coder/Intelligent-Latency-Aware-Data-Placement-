@@ -20,6 +20,7 @@ Docker Compose is required. This uses isolated Kafka, Redis, Java 17/PySpark
 data, model account, credential, employer code or external inference service.
 
 ```sh
+python -c "from pathlib import Path; Path('artifacts').mkdir(exist_ok=True)"
 docker compose -p placement-core -f compose.core-demo.yml build demo dashboard
 docker compose -p placement-core -f compose.core-demo.yml up -d --wait kafka redis dashboard
 docker compose -p placement-core -f compose.core-demo.yml run --rm demo
