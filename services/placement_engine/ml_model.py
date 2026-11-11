@@ -16,8 +16,6 @@ whether learning the trend/recency signal beats a plain moving average.
 """
 import logging
 
-from pyspark.ml.feature import VectorAssembler
-from pyspark.ml.regression import LinearRegression
 
 log = logging.getLogger("ml")
 
@@ -48,6 +46,8 @@ class MlPredictor:
         return self.model is not None
 
     def train(self):
+        from pyspark.ml.feature import VectorAssembler
+        from pyspark.ml.regression import LinearRegression
         cols = FEATURES + ["label"]
         df = self.spark.createDataFrame(self.samples, cols)
         df = VectorAssembler(inputCols=FEATURES, outputCol="features").transform(df)
@@ -62,7 +62,8 @@ class MlPredictor:
         """features: {ds: [recent, prev, ema, recency, trend]} -> {ds: predicted demand}."""
         if not self.model or not features:
             return {}
-        rows = [(ds, *vals) for ds, vals in features.items()]
+        from pyspark.ml.feature import VectorAssembler
+        rows = [(ds, *features[ds]) for ds in sorted(features)]
         df = self.spark.createDataFrame(rows, ["dataset_id"] + FEATURES)
         df = VectorAssembler(inputCols=FEATURES, outputCol="features").transform(df)
         out = self.model.transform(df).select("dataset_id", "prediction").collect()
@@ -70,4 +71,6 @@ class MlPredictor:
 
     @staticmethod
     def top_k(predictions: dict, k: int) -> list:
-        return [ds for ds, _ in sorted(predictions.items(), key=lambda x: -x[1])[:k]]
+        import math
+        valid = ((ds, score) for ds, score in predictions.items() if math.isfinite(score))
+        return [ds for ds, _ in sorted(valid, key=lambda x: (-x[1], x[0]))[:k]]

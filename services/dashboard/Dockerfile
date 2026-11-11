@@ -1,8 +1,9 @@
 FROM python:3.10-slim
 WORKDIR /app
-COPY requirements.txt .
+COPY services/dashboard/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
+COPY services/dashboard/ .
+COPY common/ ./common/
 ENV PYTHONUNBUFFERED=1
 EXPOSE 8501
 CMD ["streamlit", "run", "app.py", \

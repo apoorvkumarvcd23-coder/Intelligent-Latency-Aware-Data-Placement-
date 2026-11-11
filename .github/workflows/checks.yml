@@ -1,0 +1,50 @@
+name: placement-core
+on:
+  push:
+    paths-ignore: ['docs/**', '**.md']
+  pull_request:
+    paths-ignore: ['docs/**', '**.md']
+permissions:
+  contents: read
+jobs:
+  boundaries:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install -r requirements-dev.txt
+      - run: python -m pytest -q
+      - run: python -m compileall -q common services scripts
+      - run: docker compose config --quiet && docker compose -f compose.core-demo.yml config --quiet
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      COMPOSE_PROJECT_NAME: core06-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install playwright==1.56.0
+      - run: python -m playwright install --with-deps chromium
+      - run: docker compose -f compose.core-demo.yml build demo dashboard
+      - run: docker compose -f compose.core-demo.yml up -d --wait kafka redis dashboard
+      - name: Empty dashboard
+        run: python scripts/check_dashboard.py --empty
+      - name: Actual Kafka Spark MLlib Redis phase replay
+        run: docker compose -f compose.core-demo.yml run --rm demo
+      - name: Actual dashboard screenshot
+        run: python scripts/check_dashboard.py --log-image
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: placement-core-evidence
+          path: |
+            artifacts/placement-core.json
+            artifacts/placement-dashboard.png
+      - name: Stop only this run's disposable stack
+        if: always()
+        run: docker compose -f compose.core-demo.yml down -v --remove-orphans

@@ -12,6 +12,8 @@ cloud-miss (slow + bandwidth), which produces the latency / hit-rate / bandwidth
 metrics.
 """
 import logging
+import time
+from common.contracts import dataset_id
 
 log = logging.getLogger("placement")
 
@@ -27,6 +29,8 @@ class PlacementEngine:
         # cumulative migration overhead
         self.migrations_total = 0
         self.migration_bytes_total = 0
+        self.last_io_ms = 0.0
+        self.last_modelled_ms = 0.0
 
     # ----- serve path -------------------------------------------------------
     def serve(self, ds: str):
@@ -35,22 +39,26 @@ class PlacementEngine:
         Latency is MODELLED (tier latency) plus, on a real cloud read, the
         measured I/O time — so throughput stays high while the numbers are honest.
         """
-        if self.edge.contains(ds):
-            return self.edge_latency, True, 0
-        # miss -> fetch from cloud tier (real read, size memoized after first time)
-        size = self.cloud.size(ds)
-        latency = self.cloud_latency + self.cloud.last_read_ms
-        return latency, False, size
+        dataset_id(ds)
+        started = time.perf_counter()
+        data = self.edge.get(ds)
+        hit = data is not None
+        if not hit:
+            data = self.cloud.read(ds)
+        self.last_io_ms = (time.perf_counter()-started)*1000
+        self.last_modelled_ms = self.edge_latency if hit else self.cloud_latency
+        return self.last_modelled_ms + self.last_io_ms, hit, 0 if hit else len(data)
 
     # ----- placement reconciliation ----------------------------------------
     def reconcile(self, target_hot: list):
         """Make the edge cache hold exactly the top `capacity` of target_hot."""
-        desired = list(target_hot)[: self.capacity]
+        desired = list(dict.fromkeys(dataset_id(ds) for ds in target_hot))[: self.capacity]
         desired_set = set(desired)
         current = self.edge.members()
 
         to_promote = [d for d in desired if d not in current]
-        to_evict = [d for d in current if d not in desired_set]
+        to_evict = sorted(d for d in current if d not in desired_set)
+        prepared = {ds: self.cloud.read(ds) for ds in to_promote}
 
         moved = 0
         moved_bytes = 0
@@ -58,7 +66,7 @@ class PlacementEngine:
             self.edge.evict(ds)
             moved += 1
         for ds in to_promote:
-            data = self.cloud.read(ds)        # real cloud read of the bytes to cache
+            data = prepared[ds]
             self.edge.put(ds, data)
             moved += 1
             moved_bytes += len(data)

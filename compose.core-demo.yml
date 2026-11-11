@@ -1,0 +1,43 @@
+services:
+  kafka:
+    extends:
+      file: docker-compose.yml
+      service: kafka
+  redis:
+    extends:
+      file: docker-compose.yml
+      service: redis
+  demo:
+    build:
+      context: .
+      dockerfile: services/placement_engine/Dockerfile
+    command: ["python", "demo_integration.py", "--output", "/artifacts/placement-core.json"]
+    environment:
+      PLACEMENT_CONFIG: /app/config/core-demo.yaml
+    volumes:
+      - ./config:/app/config:ro
+      - ./artifacts:/artifacts
+    tmpfs:
+      - /data/cloud
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [lapnet]
+  dashboard:
+    build:
+      context: .
+      dockerfile: services/dashboard/Dockerfile
+    environment:
+      PLACEMENT_CONFIG: /app/config/core-demo.yaml
+    volumes:
+      - ./config:/app/config:ro
+    ports:
+      - "127.0.0.1:8508:8501"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [lapnet]
+networks:
+  lapnet:

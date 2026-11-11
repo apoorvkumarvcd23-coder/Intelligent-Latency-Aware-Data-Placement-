@@ -9,10 +9,12 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY services/placement_engine/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY services/placement_engine/ .
+COPY common/ ./common/
+COPY scripts/demo_integration.py ./demo_integration.py
 RUN mkdir -p /data/cloud /app/model_store
 
 ENV PYSPARK_PYTHON=python3 \

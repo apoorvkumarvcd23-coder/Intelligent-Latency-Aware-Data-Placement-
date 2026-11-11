@@ -16,13 +16,13 @@ class EmaPopularity:
     def update(self, window_counts: dict):
         """window_counts: {dataset_id: count_in_this_window}."""
         seen = set(self.scores) | set(window_counts)
-        for ds in seen:
+        for ds in sorted(seen):
             c = float(window_counts.get(ds, 0))
             prev = self.scores.get(ds, 0.0)
             self.scores[ds] = self.alpha * c + (1.0 - self.alpha) * prev
 
     def top_k(self, k: int) -> list:
-        return [ds for ds, _ in sorted(self.scores.items(), key=lambda x: -x[1])[:k]]
+        return [ds for ds, _ in sorted(self.scores.items(), key=lambda x: (-x[1], x[0]))[:k]]
 
     def score_of(self, ds: str) -> float:
         return self.scores.get(ds, 0.0)

@@ -8,8 +8,19 @@ See the [implementation plan and acceptance checks](docs/IMPLEMENTATION_PLAN.md)
 The core demo target is **17 November 2026**; feature delivery and hardening
 continue through **31 December 2026**. Completion requires verified evidence.
 
+**CORE06 safety slice:** shared strict configuration, versioned bounded events,
+safe dataset paths, strict HDFS failure behavior, checksum-verified auto fallback,
+atomic Redis capacity, deterministic workload/ranking and explicit measured versus
+modelled latency are implemented. A bounded real Kafka/Spark MLlib/Redis replay
+and browser check are available in the [core runbook](docs/CORE_RUNBOOK.md).
+Use the [CI workflow](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/workflows/checks.yml)
+and its JSON/PNG artifact for integration evidence; unit adapters alone do not
+prove real services. See the [claim ledger](docs/CLAIM_EVIDENCE.md).
+Real HDFS integration, broader recovery/benchmarking and final acceptance remain;
+there is no core/release tag yet.
+
 **Big Data Systems — course project**
-*Hadoop HDFS · Apache Spark · Spark Streaming · Apache Kafka · Spark MLlib · Redis · Docker*
+*Hadoop HDFS · local Spark SQL · Apache Kafka · Spark MLlib · Redis · Docker*
 
 A working system that **monitors user access patterns in real time, predicts which
 datasets will be hot, and automatically moves data between a fast "edge" tier and a
@@ -34,12 +45,12 @@ to the live workload**.
 
 ```
             access events                 predict + decide              physically move
- users  ───────────────────►  Kafka  ──►  Spark Streaming  ──►  Placement engine  ──►  Edge ⇄ Cloud
+ users  ───────────────────►  Kafka  ──►  local Spark SQL  ──►  Placement engine  ──►  Edge ⇄ Cloud
                                           + EMA + MLlib              (promote/evict)
 ```
 
 - **Monitor**: every access is an event on **Kafka** (`access-logs` topic).
-- **Analyse**: **Spark Streaming** aggregates accesses per dataset over sliding windows
+- **Analyse**: Python polls Kafka; **local Spark SQL** aggregates accesses per dataset over rolling windows
   (locality-of-reference analysis).
 - **Predict**: two predictors run side-by-side — an **EMA** statistical baseline and a
   **Spark MLlib** regression model that forecasts next-window demand from
@@ -73,13 +84,15 @@ See [docs/architecture.mmd](docs/architecture.mmd) and [docs/data-flow.mmd](docs
 Two engineering choices make this **run reliably** on a laptop, which is the priority here:
 
 1. **Spark runs in local mode** inside the engine container (`local[*]`) — still real
-   PySpark + Structured streaming-style micro-batches + real MLlib, but no fragile
+   PySpark DataFrame micro-batches + real MLlib; this is not Structured Streaming or a remote Spark cluster, with no fragile
    standalone-cluster networking.
 2. **The cloud tier has an automatic fallback.** `engine` talks to HDFS through a
    `CloudStore` abstraction. If HDFS is unreachable (slow start, crash, or you stop it
-   mid-demo), `CloudStore` transparently switches to a **latency-injected local store**
-   with the *same* behaviour, so the demo never dies. Controlled by `cloud.backend`
-   (`hdfs` | `simulated` | `auto`, default `auto`). The dashboard shows which backend is live.
+   mid-demo), `auto` policy switches to a **checksum-verified local mirror**.
+   Missing/corrupt mirrors fail closed. Strict `hdfs` policy never falls back.
+   Controlled by `cloud.backend`
+   (`hdfs` | `simulated` | `auto`, default `auto`). The dashboard shows policy,
+   active backend and degradation. WAN/tier latency is modelled, not slept or measured.
 
    Kafka consumption uses `kafka-python` micro-batches (then processed with Spark
    DataFrames) instead of the Spark-Kafka connector jar — one less thing that can break.
@@ -112,10 +125,10 @@ Stop with `docker compose down` (add `-v` to wipe HDFS/edge data too).
 ### What you'll see (the demo story)
 The workload generator keeps a **Zipfian** hot set and **shifts it every ~60 s**. Watch
 the dashboard:
-1. Hit rate climbs and latency drops as the engine learns the current hot set.
-2. At each phase shift, hit rate **dips** (the old hot data is now cold)…
-3. …then **recovers** within a cycle or two as the engine promotes the new hot set —
-   this is the adaptation the project is about.
+1. Inspect which datasets are promoted as observed demand changes.
+2. At a phase shift, compare the previous hot set with the new accesses.
+3. Measure whether the selected predictor adapts; recovery speed and any gain
+   depend on the trace and model. Negative results are valid evidence.
 4. The **EMA vs MLlib** chart compares both predictors on identical live traffic.
 
 ## 5. Evaluation metrics (all on the dashboard)
@@ -139,7 +152,7 @@ applied on restart. Useful knobs:
 - `placement.top_k`, `edge.capacity`: how much data the edge holds
 - `cloud.latency_ms`, `edge.latency_ms`: the tier latency gap
 - `workload.zipf_s`, `workload.hot_set_size`, `workload.phase_seconds`, `workload.rate_per_sec`
-- `cloud.backend`: force `hdfs` or `simulated` if you want to demo the fallback explicitly
+- `cloud.backend`: `hdfs` requires HDFS, `simulated` uses local bytes, `auto` permits verified fallback
 
 ## 7. Mapping to the Big Data Systems syllabus
 
@@ -156,7 +169,7 @@ applied on restart. Useful knobs:
 ## 8. Project layout
 
 ```
-docker-compose.yml          config/config.yaml      hadoop.env   .env
+docker-compose.yml          config/config.yaml      hadoop.env
 docs/                       architecture.mmd, data-flow.mmd
 scripts/                    demo.ps1, demo.sh, bootstrap_hdfs.sh
 services/placement_engine/  main.py stream_processor.py popularity.py ml_model.py
@@ -169,7 +182,8 @@ services/dashboard/         app.py
 
 - **Dashboard says "waiting…"** — give it a minute; the engine seeds data and trains the
   model before the first metrics. Check `docker compose logs -f engine`.
-- **HDFS UI not loading / engine shows `SIMULATED cloud`** — HDFS was slow or down; the
-  fallback kept the demo alive (by design). It auto-switches back when HDFS recovers.
+- **HDFS UI not loading / engine shows a degraded mirror** — auto mode serves only
+  verified mirror bytes and verifies the complete mirror on recovery. Strict HDFS
+  stops on failure. Configured simulated mode is labelled separately.
 - **Out of memory** — lower `workload.rate_per_sec`, or `docker compose down` other stacks.
 - **Reset everything** — `docker compose down -v && docker compose up -d --build`.

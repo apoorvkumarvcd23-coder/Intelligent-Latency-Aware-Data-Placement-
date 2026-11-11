@@ -6,6 +6,7 @@ and auto-refreshes. Shows the six evaluation metrics over time, the EMA-vs-MLlib
 head-to-head, and how well the edge cache tracks the *true* hot set.
 """
 import json
+import time
 
 import pandas as pd
 import redis
@@ -36,14 +37,18 @@ def read_state(r):
 
 
 st.title("🛰️ Intelligent Latency-Aware Data Placement — Edge ↔ Cloud")
-st.caption("Kafka → Spark Streaming → ML demand prediction → placement engine. "
-           "Edge = Redis cache (fast) · Cloud = HDFS (slow, +latency).")
+st.caption("Kafka polling → local Spark SQL / MLlib → placement. "
+           "Tier/WAN latency is modelled; Redis/cloud I/O is measured separately.")
 
 
 @st.fragment(run_every="2s")
 def render():
     r = get_redis()
-    latest, hist, phase, edge_members = read_state(r)
+    try:
+        latest, hist, phase, edge_members = read_state(r)
+    except (redis.RedisError,ValueError,TypeError):
+        st.error('Metrics unavailable. Check Redis and the placement engine.')
+        return
 
     if not latest:
         st.info("Waiting for the placement engine to publish its first metrics… "
@@ -51,12 +56,19 @@ def render():
         return
 
     backend = latest.get("cloud_backend", "?")
-    badge = "🟢 REAL HDFS" if backend == "hdfs" else "🟡 SIMULATED cloud (HDFS fallback)"
+    badge = ("🟢 REAL HDFS" if backend == "hdfs" else
+             "🟡 DEGRADED verified mirror" if latest.get('cloud_degraded') else "SIMULATED cloud (configured)")
+    if time.time()-latest.get('recorded_at',latest.get('ts',0))>60:
+        st.warning('Stale metrics: no recent decision cycle has been published.')
+    st.caption('Clock: '+latest.get('clock_mode','live')+' · invalid events: '+str(latest.get('invalid_total',0))+
+               ' · duplicates skipped: '+str(latest.get('duplicates_total',0)))
     cols = st.columns(4)
-    cols[0].metric("Avg query latency", f"{latest['avg_latency_ms']:.1f} ms")
+    cols[0].metric("Modelled + measured / access", f"{latest['avg_latency_ms']:.1f} ms")
     cols[1].metric("Cache hit rate", f"{latest['cache_hit_rate'] * 100:.1f} %")
-    cols[2].metric("Throughput", f"{latest['throughput_eps']:.0f} ev/s")
-    cols[3].metric("Cloud bandwidth", f"{latest['bandwidth_kbps']:.0f} KB/s")
+    cols[2].metric("Cycle processing throughput", f"{latest['throughput_eps']:.0f} ev/s")
+    cols[3].metric("Cloud I/O / processing second", f"{latest['bandwidth_kbps']:.0f} KB/s")
+    st.caption(f"Measured I/O/access: {latest.get('measured_io_ms_avg',0):.3f} ms · "
+               f"Modelled tier/WAN/access: {latest.get('modelled_tier_latency_ms_avg',0):.1f} ms")
 
     cols = st.columns(4)
     cols[0].metric("Edge storage used", f"{latest['edge_count']}/{latest['capacity']}",
@@ -82,14 +94,14 @@ def render():
 
     left, right = st.columns(2)
     with left:
-        st.subheader("Average query latency (ms)")
+        st.subheader("Modelled tier/WAN + measured I/O (ms)")
         st.line_chart(df[["avg_latency_ms"]])
         st.subheader("Cache hit rate")
         st.line_chart(df[["cache_hit_rate"]])
     with right:
-        st.subheader("EMA vs MLlib predictor — hit rate on live traffic")
+        st.subheader("Prior EMA / MLlib hot sets scored on next cycle")
         st.line_chart(df[["ema_hitrate", "ml_hitrate"]])
-        st.caption("Higher = the predictor's chosen hot-set matched real accesses better.")
+        st.caption("Warm-up ML values are absent. Rolling feature windows overlap; this is not a held-out benchmark.")
         st.subheader("Cloud bandwidth (KB/s) & throughput (ev/s)")
         st.line_chart(df[["bandwidth_kbps", "throughput_eps"]])
 

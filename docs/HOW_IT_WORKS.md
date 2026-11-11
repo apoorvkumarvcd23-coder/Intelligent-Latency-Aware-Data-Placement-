@@ -1,5 +1,11 @@
 # How It Works — The Complete Guide (explained like you're five, then for real)
 
+> Current operational behavior: see [CORE_RUNBOOK.md](CORE_RUNBOOK.md) and the
+> [claim ledger](CLAIM_EVIDENCE.md). This older teaching walkthrough predates the
+> safety slice. Strict HDFS never falls back, auto mode requires verified mirror
+> bytes, and processing is Python Kafka polling plus local Spark SQL/MLlib.
+> Latency combines an explicit tier/WAN model with separately measured I/O.
+
 > This is the **big friendly manual** for the project
 > *"Intelligent Latency-Aware Data Placement & Workload Optimization in Edge-Cloud Systems."*
 >

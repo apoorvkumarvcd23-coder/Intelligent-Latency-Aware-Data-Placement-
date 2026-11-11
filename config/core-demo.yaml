@@ -1,0 +1,36 @@
+kafka:
+  bootstrap_servers: kafka:9092
+  topic: placement-core-demo
+cloud:
+  backend: simulated
+  webhdfs_url: http://namenode:9870
+  hdfs_user: root
+  base_path: /datasets
+  simulated_path: /data/cloud
+  latency_ms: 80
+edge:
+  redis_host: redis
+  redis_port: 6379
+  latency_ms: 2
+  capacity: 2
+datasets:
+  count: 8
+  size_kb: 1
+placement:
+  top_k: 2
+  window_seconds: 2
+  ema_alpha: 0.65
+  decision_interval_seconds: 1
+  predictor: both
+ml:
+  retrain_interval_seconds: 1
+  min_samples: 4
+workload:
+  seed: 17
+  rate_per_sec: 24
+  zipf_s: 3.5
+  phase_seconds: 2
+  hot_set_size: 2
+metrics:
+  redis_key_prefix: core06
+  history_len: 30

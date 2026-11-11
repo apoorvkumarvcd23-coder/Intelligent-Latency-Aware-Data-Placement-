@@ -20,15 +20,13 @@ def seed_cloud(cloud, cfg: dict):
     payload = (b"LAP-EDGE-CLOUD-DATASET-" * 64)  # ~1.5 KB chunk of filler
     blob = (payload * ((size_kb * 1024) // len(payload) + 1))[: size_kb * 1024]
 
-    existing = set()
-    try:
-        existing = set(cloud.list_datasets())
-    except Exception:  # noqa: BLE001
-        pass
+    existing = set(cloud.list_datasets())
 
     created = 0
     for ds in dataset_ids(count):
         if ds in existing:
+            if cloud.read(ds) != blob:
+                raise RuntimeError('Existing dataset differs from the synthetic seed; use an isolated demo store')
             continue
         cloud.write(ds, blob)
         created += 1

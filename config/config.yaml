@@ -37,6 +37,7 @@ ml:
   min_samples: 40                 # minimum observations before first training
 
 workload:
+  seed: 7                  # repeatable trace given start timestamp + run ID
   rate_per_sec: 40          # access events emitted per second
   zipf_s: 1.3               # Zipfian skew (higher = more concentrated hot set)
   phase_seconds: 60         # how long before the hot set shifts (proves adaptation)

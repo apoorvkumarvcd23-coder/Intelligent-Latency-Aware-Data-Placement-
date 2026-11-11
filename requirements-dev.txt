@@ -1,0 +1,6 @@
+pytest==8.4.1
+PyYAML==6.0.1
+redis==5.0.4
+fakeredis[lua]==2.31.0
+numpy==1.26.4
+kafka-python==2.0.2

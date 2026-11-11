@@ -14,6 +14,12 @@ derby.log
 Thumbs.db
 .idea/
 .vscode/
+.env
+.env.*
+!.env.example
+/artifacts/
+/data/
+*.candidate
 
 # Rendered diagram images (regenerate from docs/*.mmd)
 docs/*.png

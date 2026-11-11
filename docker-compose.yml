@@ -14,8 +14,7 @@
 services:
 
   kafka:
-    image: ${KAFKA_IMAGE}
-    container_name: lap-kafka
+    image: ${KAFKA_IMAGE:-apache/kafka:3.7.0}
     environment:
       - KAFKA_NODE_ID=1
       - KAFKA_PROCESS_ROLES=broker,controller
@@ -40,13 +39,12 @@ services:
     networks: [lapnet]
 
   namenode:
-    image: ${HADOOP_NAMENODE_IMAGE}
-    container_name: lap-namenode
+    image: ${HADOOP_NAMENODE_IMAGE:-bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8}
     environment:
       - CLUSTER_NAME=lap-cluster
     env_file: ./hadoop.env
     ports:
-      - "9870:9870"          # HDFS NameNode web UI + WebHDFS REST
+      - "127.0.0.1:9870:9870"  # local unauthenticated demo only
     volumes:
       - namenode_data:/hadoop/dfs/name
     healthcheck:
@@ -58,8 +56,7 @@ services:
     networks: [lapnet]
 
   datanode:
-    image: ${HADOOP_DATANODE_IMAGE}
-    container_name: lap-datanode
+    image: ${HADOOP_DATANODE_IMAGE:-bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8}
     environment:
       - SERVICE_PRECONDITION=namenode:9870
     env_file: ./hadoop.env
@@ -77,8 +74,7 @@ services:
     networks: [lapnet]
 
   redis:
-    image: ${REDIS_IMAGE}
-    container_name: lap-redis
+    image: ${REDIS_IMAGE:-redis:7-alpine}
     command: ["redis-server", "--save", "", "--appendonly", "no"]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -88,8 +84,9 @@ services:
     networks: [lapnet]
 
   engine:
-    build: ./services/placement_engine
-    container_name: lap-engine
+    build:
+      context: .
+      dockerfile: services/placement_engine/Dockerfile
     # NOTE: only depends on kafka + redis (REQUIRED). HDFS is intentionally
     # NOT a hard dependency so the CloudStore fallback can engage if it is down.
     depends_on:
@@ -98,7 +95,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "4040:4040"          # Spark UI (local mode driver)
+      - "127.0.0.1:4040:4040"
     volumes:
       - ./config:/app/config:ro
       - cloud_sim:/data/cloud           # simulated-cloud fallback store
@@ -106,8 +103,9 @@ services:
     networks: [lapnet]
 
   workload:
-    build: ./services/workload_generator
-    container_name: lap-workload
+    build:
+      context: .
+      dockerfile: services/workload_generator/Dockerfile
     depends_on:
       kafka:
         condition: service_healthy
@@ -118,13 +116,14 @@ services:
     networks: [lapnet]
 
   dashboard:
-    build: ./services/dashboard
-    container_name: lap-dashboard
+    build:
+      context: .
+      dockerfile: services/dashboard/Dockerfile
     depends_on:
       redis:
         condition: service_healthy
     ports:
-      - "8501:8501"
+      - "127.0.0.1:8501:8501"
     volumes:
       - ./config:/app/config:ro
     networks: [lapnet]
