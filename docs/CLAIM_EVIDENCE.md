@@ -1,5 +1,11 @@
 # Current implemented claims
 
+Verified source `ea7669e7e63b9c550797595b19f11270fa272036` passed
+[CI run 43089970944](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43089970944),
+including 63 boundary checks and the real-service/browser replay. See the
+[recorded JSON](core-demo-2026-11-12.json), [actual screenshot](core-demo-2026-11-12.png)
+and [runbook](CORE_RUNBOOK.md). Cloud storage for that replay was simulated.
+
 | Behavior | Code | Executable check |
 | --- | --- | --- |
 | Shared bounded configuration fails before services start | `common/contracts.py`, three compatibility loaders | Invalid types/nonfinite/ranges/policies/keys and cross-field tests |

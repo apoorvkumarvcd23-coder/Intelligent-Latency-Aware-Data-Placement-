@@ -1,5 +1,21 @@
 # Placement core: reproducible safety and integration
 
+## Verified 12 November 2026 IST
+
+[Clean-checkout CI](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43089970944)
+passed on source `ea7669e7e63b9c550797595b19f11270fa272036`: 63 boundary tests,
+compilation, both Compose configurations, actual Kafka/Spark MLlib/Redis replay,
+and empty/populated Chromium dashboard checks. The [recorded JSON](core-demo-2026-11-12.json)
+contains six cycles: 148 received, 144 accepted, three invalid and one duplicate.
+The trace SHA-256 is `e4537409e61621a212b3e8b6585b3a6c5c3daa9a823f4a97628c39cdc52f9841`.
+
+![Actual synthetic replay dashboard](core-demo-2026-11-12.png)
+
+This screenshot comes from that CI browser, not a mockup. Cloud storage in this
+run is explicitly simulated. HDFS policy failure injection is unit coverage;
+actual HDFS integration, final core acceptance and a release tag remain pending.
+These fixture scores and processing rates are not performance/generalization claims.
+
 Python 3.10+ supports the unit suite without Spark, Kafka or Redis services:
 
 ```sh

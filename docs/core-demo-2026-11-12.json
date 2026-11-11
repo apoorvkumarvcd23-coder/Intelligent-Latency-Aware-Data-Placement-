@@ -1,0 +1,389 @@
+{
+  "provenance": {
+    "checked_source_commit": "ea7669e7e63b9c550797595b19f11270fa272036",
+    "workflow_run": "https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43089970944",
+    "date_asia_kolkata": "2026-11-12",
+    "extraction": "JSON emitted by the actual integration job; GitHub timestamps and one interleaved Py4J shutdown log excluded."
+  },
+  "integration": "actual Kafka broker, local Spark SQL/MLlib and Redis; no model/service mocks",
+  "cloud_backend": "simulated",
+  "hdfs_integration": false,
+  "clock": "fixed historical event-time replay, not paced live traffic",
+  "seed": 17,
+  "trace_sha256": "e4537409e61621a212b3e8b6585b3a6c5c3daa9a823f4a97628c39cdc52f9841",
+  "received": 148,
+  "accepted": 144,
+  "invalid": 3,
+  "duplicates": 1,
+  "spark_version": "3.5.1",
+  "python_version": "3.10.22",
+  "snapshots": [
+    {
+      "ts": 1700000001,
+      "recorded_at": 1794426362.3936417,
+      "cycle": 0,
+      "served": 24,
+      "avg_latency_ms": 80.31478041666647,
+      "measured_io_ms_avg": 0.3147804166664751,
+      "modelled_tier_latency_ms_avg": 80,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 0,
+      "throughput_eps": 8.928268873852893,
+      "bandwidth_kbps": 8.928268873852893,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 2,
+      "evicted": 0,
+      "migrations_cycle": 2,
+      "migration_bytes_cycle": 2048,
+      "migrations_total": 2,
+      "migration_bytes_total": 2048,
+      "ema_hitrate": null,
+      "ml_hitrate": null,
+      "previous_ema_hot_set": null,
+      "previous_ml_hot_set": null,
+      "ema_hot_set": [
+        "ds_0004",
+        "ds_0003"
+      ],
+      "ml_hot_set": [],
+      "edge_members": [
+        "ds_0003",
+        "ds_0004"
+      ],
+      "observed_counts": {
+        "ds_0004": 23,
+        "ds_0003": 1
+      },
+      "predictor_active": "ema",
+      "ml_ready": false,
+      "ml_samples": 0,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 2,
+      "total_datasets": 8,
+      "phase": 0,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 24,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    },
+    {
+      "ts": 1700000002,
+      "recorded_at": 1794426362.6803598,
+      "cycle": 1,
+      "served": 24,
+      "avg_latency_ms": 11.904119708334122,
+      "measured_io_ms_avg": 0.1541197083341217,
+      "modelled_tier_latency_ms_avg": 11.75,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 0.875,
+      "throughput_eps": 87.98338023275532,
+      "bandwidth_kbps": 10.997922529094415,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 1,
+      "evicted": 1,
+      "migrations_cycle": 2,
+      "migration_bytes_cycle": 1024,
+      "migrations_total": 4,
+      "migration_bytes_total": 3072,
+      "ema_hitrate": 0.875,
+      "ml_hitrate": null,
+      "previous_ema_hot_set": [
+        "ds_0003",
+        "ds_0004"
+      ],
+      "previous_ml_hot_set": null,
+      "ema_hot_set": [
+        "ds_0004",
+        "ds_0002"
+      ],
+      "ml_hot_set": [],
+      "edge_members": [
+        "ds_0002",
+        "ds_0004"
+      ],
+      "observed_counts": {
+        "ds_0002": 2,
+        "ds_0004": 21,
+        "ds_0005": 1
+      },
+      "predictor_active": "ema",
+      "ml_ready": false,
+      "ml_samples": 2,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 4,
+      "total_datasets": 8,
+      "phase": 0,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 48,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    },
+    {
+      "ts": 1700000003,
+      "recorded_at": 1794426365.2800782,
+      "cycle": 2,
+      "served": 24,
+      "avg_latency_ms": 80.33469741666654,
+      "measured_io_ms_avg": 0.334697416666548,
+      "modelled_tier_latency_ms_avg": 80,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 0,
+      "throughput_eps": 9.267215889889632,
+      "bandwidth_kbps": 9.267215889889632,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 2,
+      "evicted": 2,
+      "migrations_cycle": 4,
+      "migration_bytes_cycle": 2048,
+      "migrations_total": 8,
+      "migration_bytes_total": 5120,
+      "ema_hitrate": 0,
+      "ml_hitrate": null,
+      "previous_ema_hot_set": [
+        "ds_0002",
+        "ds_0004"
+      ],
+      "previous_ml_hot_set": null,
+      "ema_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "ml_hot_set": [
+        "ds_0001",
+        "ds_0003"
+      ],
+      "edge_members": [
+        "ds_0001",
+        "ds_0003"
+      ],
+      "observed_counts": {
+        "ds_0001": 24
+      },
+      "predictor_active": "ml",
+      "ml_ready": true,
+      "ml_samples": 6,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 5,
+      "total_datasets": 8,
+      "phase": 1,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 72,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    },
+    {
+      "ts": 1700000004,
+      "recorded_at": 1794426365.97775,
+      "cycle": 3,
+      "served": 24,
+      "avg_latency_ms": 8.59636274999932,
+      "measured_io_ms_avg": 0.09636274999931989,
+      "modelled_tier_latency_ms_avg": 8.5,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 0.9166666666666666,
+      "throughput_eps": 34.86715011442474,
+      "bandwidth_kbps": 2.905595842868728,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 1,
+      "evicted": 1,
+      "migrations_cycle": 2,
+      "migration_bytes_cycle": 1024,
+      "migrations_total": 10,
+      "migration_bytes_total": 6144,
+      "ema_hitrate": 0.9166666666666666,
+      "ml_hitrate": 0.9166666666666666,
+      "previous_ema_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "previous_ml_hot_set": [
+        "ds_0001",
+        "ds_0003"
+      ],
+      "ema_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "ml_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "edge_members": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "observed_counts": {
+        "ds_0001": 22,
+        "ds_0005": 2
+      },
+      "predictor_active": "ml",
+      "ml_ready": true,
+      "ml_samples": 11,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 5,
+      "total_datasets": 8,
+      "phase": 1,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 96,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    },
+    {
+      "ts": 1700000005,
+      "recorded_at": 1794426366.6258097,
+      "cycle": 4,
+      "served": 24,
+      "avg_latency_ms": 80.23644087499916,
+      "measured_io_ms_avg": 0.23644087499915165,
+      "modelled_tier_latency_ms_avg": 80,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 0,
+      "throughput_eps": 37.45523204356644,
+      "bandwidth_kbps": 37.45523204356644,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 2,
+      "evicted": 2,
+      "migrations_cycle": 4,
+      "migration_bytes_cycle": 2048,
+      "migrations_total": 14,
+      "migration_bytes_total": 8192,
+      "ema_hitrate": 0,
+      "ml_hitrate": 0,
+      "previous_ema_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "previous_ml_hot_set": [
+        "ds_0001",
+        "ds_0004"
+      ],
+      "ema_hot_set": [
+        "ds_0006",
+        "ds_0001"
+      ],
+      "ml_hot_set": [
+        "ds_0006",
+        "ds_0003"
+      ],
+      "edge_members": [
+        "ds_0003",
+        "ds_0006"
+      ],
+      "observed_counts": {
+        "ds_0006": 22,
+        "ds_0003": 2
+      },
+      "predictor_active": "ml",
+      "ml_ready": true,
+      "ml_samples": 16,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 6,
+      "total_datasets": 8,
+      "phase": 2,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 120,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    },
+    {
+      "ts": 1700000006,
+      "recorded_at": 1794426367.2687607,
+      "cycle": 5,
+      "served": 24,
+      "avg_latency_ms": 2.06754516666696,
+      "measured_io_ms_avg": 0.0675451666669602,
+      "modelled_tier_latency_ms_avg": 2,
+      "latency_semantics": "modelled tier/WAN plus measured Redis/filesystem/HDFS I/O; no WAN delay sleep",
+      "cache_hit_rate": 1,
+      "throughput_eps": 37.77562233224666,
+      "bandwidth_kbps": 0,
+      "storage_util": 1,
+      "edge_count": 2,
+      "capacity": 2,
+      "promoted": 1,
+      "evicted": 1,
+      "migrations_cycle": 2,
+      "migration_bytes_cycle": 1024,
+      "migrations_total": 16,
+      "migration_bytes_total": 9216,
+      "ema_hitrate": 0.9583333333333334,
+      "ml_hitrate": 1,
+      "previous_ema_hot_set": [
+        "ds_0001",
+        "ds_0006"
+      ],
+      "previous_ml_hot_set": [
+        "ds_0003",
+        "ds_0006"
+      ],
+      "ema_hot_set": [
+        "ds_0006",
+        "ds_0001"
+      ],
+      "ml_hot_set": [
+        "ds_0006",
+        "ds_0001"
+      ],
+      "edge_members": [
+        "ds_0001",
+        "ds_0006"
+      ],
+      "observed_counts": {
+        "ds_0006": 23,
+        "ds_0003": 1
+      },
+      "predictor_active": "ml",
+      "ml_ready": true,
+      "ml_samples": 22,
+      "ml_training_failed": false,
+      "cloud_backend": "simulated",
+      "cloud_policy": "simulated",
+      "cloud_degraded": false,
+      "known_datasets": 6,
+      "total_datasets": 8,
+      "phase": 2,
+      "history_dropped": 0,
+      "prediction_scoring": "previous-cycle hot sets against current accepted events; rolling feature windows overlap",
+      "clock_mode": "seeded-event-time-replay",
+      "accepted_total": 144,
+      "invalid_total": 3,
+      "duplicates_total": 1
+    }
+  ],
+  "limits": "Six development cycles, not a benchmark or ML improvement claim. HDFS policy tests use failure-injection adapters; real HDFS drill and full release acceptance remain."
+}

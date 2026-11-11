@@ -13,6 +13,20 @@ through December; no measured improvement is claimed before the experiment.
 
 ## Source-grounded starting point
 
+### Verified core slice — 12 November 2026
+
+CORE06 now passes 63 boundary checks and a clean-checkout actual Kafka/local
+Spark MLlib/Redis replay with browser verification. Configuration/event/path
+validation, strict HDFS versus verified mirror policies, atomic cache capacity,
+seeded phase changes and measured/modelled timing labels are implemented.
+See [current code/check ledger](CLAIM_EVIDENCE.md) and [recorded runbook](CORE_RUNBOOK.md).
+The integration cloud is simulated: real HDFS/full-stack integration remains
+CORE09, and final acceptance remains 17 November. Model persistence, durable
+checkpoints and fair multi-seed/LRU benchmarks are still December work.
+
+The following review describes the original planning baseline, not the current
+implementation; its findings are superseded by the code/check ledger above.
+
 Reviewed main `2452ddfede57a555e349ba7c606f210058b7a3ed`: README/architecture guide,
 Compose/configuration, workload generator, local Spark aggregation, EMA and MLlib
 prediction, placement/cache/storage adapters, metrics, seed and dashboard.
