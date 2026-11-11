@@ -19,7 +19,7 @@ jobs:
       - run: python -m compileall -q common services scripts
       - run: docker compose config --quiet && docker compose -f compose.core-demo.yml config --quiet
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       COMPOSE_PROJECT_NAME: core06-${{ github.run_id }}
