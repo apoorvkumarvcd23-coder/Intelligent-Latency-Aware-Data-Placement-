@@ -117,7 +117,9 @@ feature/label windows overlap, so no held-out generalization claim follows.
 
 ## Remaining acceptance
 
-Actual HDFS integration and complete full-stack walkthrough are CORE09 work.
+The [CORE09 real HDFS/full-stack walkthrough](HDFS_INTEGRATION.md) now passes
+with separate actual outage/recovery evidence. This earlier CORE06 profile and
+its recorded report remain simulated storage.
 Fair multi-seed/LRU benchmarks, persisted models, broader replay/recovery and full
 v1 gates follow in December. Final core acceptance is still 17 November, with
 no tag before its clean-clone/evidence audit. Local Docker failure must be repaired

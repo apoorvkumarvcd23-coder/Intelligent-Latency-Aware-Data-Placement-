@@ -16,8 +16,14 @@ and browser check are available in the [core runbook](docs/CORE_RUNBOOK.md).
 Use the [CI workflow](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/workflows/checks.yml)
 and its JSON/PNG artifact for integration evidence; unit adapters alone do not
 prove real services. See the [claim ledger](docs/CLAIM_EVIDENCE.md).
-Real HDFS integration, broader recovery/benchmarking and final acceptance remain;
-there is no core/release tag yet.
+
+**15 November CORE09 integration:** the [real HDFS replay and outage/recovery
+walkthrough](docs/HDFS_INTEGRATION.md) now passes clean Linux CI. It proves strict
+outage denials, verified-mirror reads, missing/corrupt-mirror rejection and upload/
+readback of an offline-created dataset after the actual Hadoop services restart.
+[Actual JSON/screenshots](docs/hdfs-integration-2026-11-15.json) distinguish this
+from the earlier simulated-cloud replay. Broader recovery/benchmarking and final
+17 November acceptance remain; there is no core/release tag yet.
 
 **Big Data Systems — course project**
 *Hadoop HDFS · local Spark SQL · Apache Kafka · Spark MLlib · Redis · Docker*

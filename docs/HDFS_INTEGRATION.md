@@ -1,5 +1,28 @@
 # Real HDFS integration and recovery drill
 
+## Verified 15 November 2026
+
+Source `3e7bafe3c99bf58686ea95b9c05f3613d536aebe` passed
+[clean Linux CI](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43633766007):
+all 63 boundary tests, the retained simulated profile and the complete real-HDFS
+replay/outage/recovery/browser path. [Permanent JSON evidence](hdfs-integration-2026-11-15.json)
+includes all six phase-replay and four storage-drill snapshots, actual Hadoop
+3.2.1/Spark 3.5.1 versions, ten verified HDFS file hashes and the artifact digest.
+The replay reconciles 148 records = 144 accepted + three invalid + one duplicate.
+The separate storage drill performs 96 accepted accesses across healthy warm-up,
+healthy, outage and recovered cycles; it is not another Kafka ingestion count.
+
+Inspected actual CI screenshots:
+[strict HDFS phase replay](evidence/2026-11-15/placement-hdfs.png),
+[healthy](evidence/2026-11-15/hdfs-healthy.png),
+[outage and readable mirror warning](evidence/2026-11-15/hdfs-outage.png),
+[recovered](evidence/2026-11-15/hdfs-recovered.png).
+Native Windows passes 62 tests with one host symlink-permission skip and all
+three Compose configuration checks. Its Docker engine remained unavailable;
+the real Hadoop proof is the independent clean Linux run, not a host repair.
+
+## Reproduce the isolated lab
+
 This isolated lab adds an actual Hadoop NameNode/DataNode to the existing
 Kafka/local Spark SQL and MLlib/Redis replay. `compose.core-demo.yml` continues
 to use explicitly simulated filesystem cloud. `compose.hdfs-demo.yml` selects
@@ -49,7 +72,7 @@ invalid records and one duplicate. The storage drill separately:
    records recovered decision metrics and a real browser screenshot.
 
 The report is `artifacts/hdfs-drill.json`, with actual data hashes, strict
-denials, recovery flags, Hadoop/Spark versions and all three decision snapshots.
+denials, recovery flags, Hadoop/Spark versions and all four decision snapshots.
 Four snapshots include healthy warm-up, healthy, degraded and recovered cycles.
 Screenshots show healthy, degraded and recovered states. The `hdfs-integration`
 CI job reproduces the clean-checkout path and uploads public synthetic evidence.

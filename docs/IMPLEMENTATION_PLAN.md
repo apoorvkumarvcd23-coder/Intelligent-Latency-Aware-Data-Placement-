@@ -15,6 +15,14 @@ through December; no measured improvement is claimed before the experiment.
 
 ### Verified core slice — 12 November 2026
 
+CORE09 update, 15 November: [real HDFS integration](HDFS_INTEGRATION.md) passes
+all three clean Linux CI jobs, including strict phase replay, live Hadoop
+stop/start, verified-mirror denials/offline writes/recovery and actual browser
+states. The native host's Docker remains unavailable; Linux proof is labelled
+separately. Final acceptance remains 17 November; fair benchmarks, persisted
+models and broader checkpoint/recovery remain December work. The following
+CORE06 summary describes the earlier slice and its simulated-storage evidence.
+
 CORE06 now passes 63 boundary checks and a clean-checkout actual Kafka/local
 Spark MLlib/Redis replay with browser verification. Configuration/event/path
 validation, strict HDFS versus verified mirror policies, atomic cache capacity,
