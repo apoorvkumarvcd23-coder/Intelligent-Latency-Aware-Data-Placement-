@@ -24,6 +24,8 @@ def main():
     def dc(*args,**kwargs):
         return command(compose+list(args),**kwargs)
     control=ROOT/'artifacts/hdfs-control'/run
+    # Host owns the handshake directory so it can signal a root container on Linux.
+    control.mkdir(parents=True,exist_ok=False)
     def wait(name):
         deadline=time.monotonic()+300
         while not (control/(name+'.json')).is_file():

@@ -152,5 +152,6 @@ if __name__=='__main__':
     if not re.fullmatch(r'[a-f0-9]{32}',run):
         raise RuntimeError('Use scripts/run_hdfs_demo.py to coordinate an isolated run')
     control=Path('/artifacts/hdfs-control')/run
-    control.mkdir(parents=True,exist_ok=False)
+    if not control.is_dir() or any(control.iterdir()):
+        raise RuntimeError('Expected a new empty host-owned handshake directory')
     demonstrate(load_config(),control)
