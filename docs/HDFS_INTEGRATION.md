@@ -5,7 +5,7 @@ Kafka/local Spark SQL and MLlib/Redis replay. `compose.core-demo.yml` continues
 to use explicitly simulated filesystem cloud. `compose.hdfs-demo.yml` selects
 strict HDFS for the six-cycle replay; it never accepts fallback as success.
 
-The host needs Docker Compose v2 with `wait`, Python 3.10+ and the pinned browser
+The host needs Docker Compose v2, Python 3.10+ and the pinned browser
 verifier. Allow several GB of free memory for Hadoop, Kafka, Spark and Chromium.
 No public cloud, accounts or private datasets are used. Hadoop is unauthenticated
 and its published UI is loopback-only; this is a disposable single-DataNode lab.

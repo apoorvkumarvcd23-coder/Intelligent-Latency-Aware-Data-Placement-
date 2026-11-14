@@ -60,10 +60,19 @@ def main():
         (control/'recovery-now').write_text('Both HDFS services healthy and safe mode exited.\n')
         report=wait('recovered')
         screenshot('hdfs','hdfs-recovered.png')
-        dc('wait','hdfs-drill',timeout=120)
-        state=dc('ps','--all','--format','json','hdfs-drill',capture=True).stdout
-        rows=json.loads(state) if state.lstrip().startswith('[') else [json.loads(s) for s in state.splitlines() if s.strip()]
-        assert rows and rows[0]['ExitCode']==0
+        # Compose wait can omit an already-exited service. Inspect the owned
+        # container including stopped state, retaining the required zero exit.
+        deadline=time.monotonic()+120
+        while True:
+            state=dc('ps','--all','--format','json','hdfs-drill',capture=True).stdout
+            rows=json.loads(state) if state.lstrip().startswith('[') else [json.loads(s) for s in state.splitlines() if s.strip()]
+            assert len(rows)==1, 'Owned drill container is missing or ambiguous'
+            if rows[0]['State'] in {'exited','dead'}:
+                break
+            if time.monotonic()>deadline:
+                raise RuntimeError('Owned HDFS drill did not exit')
+            time.sleep(0.2)
+        assert rows[0]['State']=='exited' and rows[0]['ExitCode']==0
         report.update(hadoop_version=version,host_observed_both_hdfs_containers_stopped=True,
                       host_observed_service_health_and_safe_mode_exit=True,
                       screenshot_files=['hdfs-healthy.png','hdfs-outage.png','hdfs-recovered.png'])
