@@ -1,0 +1,38 @@
+# Disposable unauthenticated, single-datanode integration lab. No production data.
+services:
+  kafka:
+    extends: {file: compose.core-demo.yml, service: kafka}
+  redis:
+    extends: {file: compose.core-demo.yml, service: redis}
+  namenode:
+    extends: {file: docker-compose.yml, service: namenode}
+    hostname: namenode
+  datanode:
+    extends: {file: docker-compose.yml, service: datanode}
+    hostname: datanode
+    environment:
+      HDFS_CONF_dfs_datanode_hostname: datanode
+  demo:
+    extends: {file: compose.core-demo.yml, service: demo}
+    environment:
+      PLACEMENT_CONFIG: /app/config/core-hdfs.yaml
+    command: [python, demo_integration.py, --output, /artifacts/placement-hdfs.json]
+    depends_on:
+      datanode: {condition: service_healthy}
+  hdfs-drill:
+    extends: {file: compose.core-demo.yml, service: demo}
+    environment:
+      PLACEMENT_CONFIG: /app/config/core-hdfs.yaml
+      HDFS_DRILL_RUN: ${HDFS_DRILL_RUN:-manual}
+    command: [python, demo_hdfs.py]
+    depends_on:
+      datanode: {condition: service_healthy}
+  dashboard:
+    extends: {file: compose.core-demo.yml, service: dashboard}
+    environment:
+      PLACEMENT_CONFIG: /app/config/core-hdfs.yaml
+networks:
+  lapnet:
+volumes:
+  namenode_data:
+  datanode_data:

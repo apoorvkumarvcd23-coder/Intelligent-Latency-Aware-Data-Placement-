@@ -17,7 +17,7 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
       - run: python -m compileall -q common services scripts
-      - run: docker compose config --quiet && docker compose -f compose.core-demo.yml config --quiet
+      - run: docker compose config --quiet && docker compose -f compose.core-demo.yml config --quiet && docker compose -f compose.hdfs-demo.yml config --quiet
   integration:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -50,3 +50,43 @@ jobs:
       - name: Stop only this run's disposable stack
         if: always()
         run: docker compose -f compose.core-demo.yml down -v --remove-orphans
+  hdfs-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      COMPOSE_PROJECT_NAME: core09-${{ github.run_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - run: pip install playwright==1.56.0
+      - run: python -m playwright install --with-deps chromium
+      - run: mkdir -p artifacts
+      - run: docker compose -f compose.hdfs-demo.yml build demo dashboard hdfs-drill
+      - name: Start owned real Hadoop Kafka Redis and dashboard
+        run: docker compose -f compose.hdfs-demo.yml up -d --wait --wait-timeout 240 kafka redis namenode datanode dashboard
+      - name: Wait for actual HDFS write readiness
+        run: docker compose -f compose.hdfs-demo.yml exec -T namenode hdfs dfsadmin -safemode wait
+      - name: Real strict-HDFS Kafka Spark MLlib Redis replay
+        run: docker compose -f compose.hdfs-demo.yml run --rm demo
+      - name: Real HDFS phase-replay dashboard
+        run: python scripts/check_dashboard.py --backend hdfs --output artifacts/placement-hdfs.png
+      - name: Actual HDFS stop mirror-denial offline-write and recovery drill
+        run: python scripts/run_hdfs_demo.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: actual-hdfs-evidence
+          path: |
+            artifacts/placement-hdfs.json
+            artifacts/placement-hdfs.png
+            artifacts/hdfs-drill.json
+            artifacts/hdfs-*.png
+            artifacts/hdfs-control/**/*.json
+      - name: Show owned service diagnostics
+        if: failure()
+        run: docker compose -f compose.hdfs-demo.yml logs --no-color --tail 100
+      - name: Stop only this run's disposable HDFS stack
+        if: always()
+        run: docker compose -f compose.hdfs-demo.yml down -v --remove-orphans

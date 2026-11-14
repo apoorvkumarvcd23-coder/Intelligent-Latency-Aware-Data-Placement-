@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY services/placement_engine/ .
 COPY common/ ./common/
 COPY scripts/demo_integration.py ./demo_integration.py
+COPY scripts/demo_hdfs.py ./demo_hdfs.py
 RUN mkdir -p /data/cloud /app/model_store
 
 ENV PYSPARK_PYTHON=python3 \

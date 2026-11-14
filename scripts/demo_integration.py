@@ -1,4 +1,4 @@
-"""Bounded real Kafka/Spark MLlib/Redis replay; explicitly simulated cloud."""
+"""Bounded real Kafka/Spark MLlib/Redis replay with explicitly selected storage."""
 import argparse
 import copy
 import hashlib
@@ -96,13 +96,15 @@ def demonstrate(cfg):
         assert edge.redis().llen(cfg['metrics']['redis_key_prefix']+':invalid-events')==3
         return {
             'integration':'actual Kafka broker, local Spark SQL/MLlib and Redis; no model/service mocks',
-            'cloud_backend':cloud.backend,'hdfs_integration':False,
+            'cloud_backend':cloud.backend,'hdfs_integration':cloud.backend == 'hdfs',
             'clock':'fixed historical event-time replay, not paced live traffic',
             'seed':17,'trace_sha256':hashlib.sha256(b'\n'.join(wire)).hexdigest(),
             'received':received,'accepted':gate.accepted,'invalid':gate.invalid,'duplicates':gate.duplicates,
             'spark_version':spark.version,'python_version':platform.python_version(),
             'snapshots':snapshots,
-            'limits':'Six development cycles, not a benchmark or ML improvement claim. HDFS policy tests use failure-injection adapters; real HDFS drill and full release acceptance remain.',
+            'limits':'Six development cycles, not a benchmark or ML improvement claim. '
+                     'The cloud_backend field distinguishes real HDFS from simulated filesystem storage. '
+                     'Outage/recovery is a separate drill; full release acceptance remains.',
         }
     finally:
         if producer is not None:
