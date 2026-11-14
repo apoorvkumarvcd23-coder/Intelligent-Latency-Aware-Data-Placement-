@@ -57,7 +57,11 @@ def render():
 
     backend = latest.get("cloud_backend", "?")
     badge = ("🟢 REAL HDFS" if backend == "hdfs" else
-             "🟡 DEGRADED verified mirror" if latest.get('cloud_degraded') else "SIMULATED cloud (configured)")
+             "🟡 DEGRADED" if latest.get('cloud_degraded') else "SIMULATED cloud (configured)")
+    if latest.get('cloud_degraded'):
+        st.warning('DEGRADED verified mirror: HDFS is not serving this cycle. '
+                   'Only checksum-verified local bytes are eligible for reads; '
+                   'recovery must revalidate managed data before HDFS is used again.')
     if time.time()-latest.get('recorded_at',latest.get('ts',0))>60:
         st.warning('Stale metrics: no recent decision cycle has been published.')
     st.caption('Clock: '+latest.get('clock_mode','live')+' · invalid events: '+str(latest.get('invalid_total',0))+

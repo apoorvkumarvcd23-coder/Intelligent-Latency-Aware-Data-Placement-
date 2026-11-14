@@ -29,6 +29,8 @@ with sync_playwright() as api:
             page.get_by_text('duplicates skipped: '+str(args.duplicates),exact=False).wait_for()
             badge={'simulated':'SIMULATED cloud (configured)','hdfs':'REAL HDFS','degraded':'DEGRADED verified mirror'}[args.backend]
             page.get_by_text(badge,exact=False).wait_for()
+            if args.backend == 'degraded':
+                page.get_by_test_id('stAlert').filter(has_text='DEGRADED verified mirror').wait_for()
             page.get_by_role('heading',name='Edge cache vs ground-truth hot set').wait_for()
             page.locator('[data-testid="stVegaLiteChart"] canvas').last.wait_for(timeout=30000)
             assert not page.locator('[data-testid="stException"]').count()
