@@ -48,7 +48,9 @@ from the 148-record Kafka replay. The run is a single-DataNode, single-managed-
 writer local lab; recovery reconciles its verified mirror, not concurrent
 external HDFS writers. Native Windows Docker remained unavailable.
 
-Still open: final clean-clone/claim audit,
-full resume-ready acceptance, fair multi-seed/LRU experiments, model persistence,
-durable replay/checkpoint boundaries and broader recovery/retention. No release
-tag or measured improvement claim is earned by the safety slice alone.
+The [17 November bounded core audit](CORE_ACCEPTANCE.md) maps the complete core
+to clean-checkout evidence. v0.1.0 requires all three CI jobs of its reviewed
+acceptance commit; manual workflow dispatch now supports repeatable tag/ref checks.
+Still open for v1.0.0: fair multi-seed/LRU experiments, model persistence,
+durable replay/checkpoint boundaries and broader recovery/retention. No measured
+improvement claim is earned by the small development trace.

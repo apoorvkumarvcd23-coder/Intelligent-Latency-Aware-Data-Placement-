@@ -13,6 +13,13 @@ through December; no measured improvement is claimed before the experiment.
 
 ## Source-grounded starting point
 
+### Core acceptance — 17 November 2026
+
+The [bounded core acceptance/claim ledger](CORE_ACCEPTANCE.md) records native
+checks and actual clean Linux Kafka/Spark/Redis/HDFS evidence. It explicitly
+excludes fair benchmark, model persistence and full December v1.0.0 claims.
+All three jobs of the reviewed acceptance commit must pass before v0.1.0 tagging.
+
 ### Verified core slice — 12 November 2026
 
 CORE09 update, 15 November: [real HDFS integration](HDFS_INTEGRATION.md) passes

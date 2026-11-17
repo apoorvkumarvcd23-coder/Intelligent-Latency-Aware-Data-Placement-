@@ -1,0 +1,64 @@
+{
+  "audit_date_asia_kolkata": "2026-11-17",
+  "project": "Latency-Aware Data Placement",
+  "core_scope": "v0.1.0 bounded core only; December v1.0.0 gates excluded",
+  "audited_input_sha": "c7fea84dfa6e2dd752db36b5d6645ef27e5a3c59",
+  "clean_clone": true,
+  "previous_verified_ci": "https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43633766007",
+  "release_gate": "Tag only the reviewed default-branch acceptance commit after its own complete clean-checkout CI passes; the immutable tag/CI ledger is published in the profile repository.",
+  "criteria": [
+    {
+      "contract": "Validated configuration/events/dataset paths",
+      "implementation": "common/contracts.py; common/events.py; hdfs_client.py",
+      "verification": "63 Linux boundary tests;62 native passes plus Windows symlink skip; strict traversal/type/time/event bounds"
+    },
+    {
+      "contract": "Actual seeded Kafka/Spark/MLlib/Redis adaptation",
+      "implementation": "common/workload.py; services/placement_engine/runtime.py; scripts/demo_integration.py",
+      "verification": "Actual 148-record replay \u2192144 accepted/3 invalid/1 duplicate; next-cycle scoring independently recomputed"
+    },
+    {
+      "contract": "Strict HDFS and explicit verified-mirror fallback",
+      "implementation": "services/placement_engine/hdfs_client.py CloudStore",
+      "verification": "Actual NameNode/DataNode writes/reads; strict startup/read/write/list/exists denied during live service outage"
+    },
+    {
+      "contract": "Verified recovery and real dashboard",
+      "implementation": "demo_hdfs.py; run_hdfs_demo.py; check_dashboard.py",
+      "verification": "Same clients survive service stop/start; corrupt/missing mirrors denied, offline writes read back and degraded/recovered browser states verified"
+    },
+    {
+      "contract": "Honest measurement/provenance and repeatable release checks",
+      "implementation": "placement.py serve; runtime.py metrics; .github/workflows/checks.yml",
+      "verification": "Modelled tier/WAN delay separate from measured I/O; fixed seed/hash; manual workflow dispatch supports immutable tag reruns"
+    }
+  ],
+  "native_current_run": {
+    "platform": "Windows / Python3.12; Docker engine unavailable",
+    "boundary_tests": 62,
+    "skipped": 1,
+    "skip": "Host Windows symlink privilege; all63 must pass on Linux",
+    "compiled": true,
+    "real_service_evidence": "Linked clean Linux CI and hashed actual HDFS report; no native Docker/HDFS claim",
+    "tracked_runtime_config": "hadoop.env reviewed: unauthenticated disposable demo settings only; .env untracked/ignored"
+  },
+  "prior_evidence_sha256": {
+    "hdfs-integration-2026-11-15.json": "501c83a0af4f121e282f2f48df30836de8d86f356889f967e5278d42a0b20248"
+  },
+  "published_screenshot": null,
+  "tracked_file_boundary_review": {
+    "forbidden_local_files_tracked": 0,
+    "known_credential_patterns": 0,
+    "limits": "Targeted current-file checks, not a claim of comprehensive security review."
+  },
+  "allowed_project_wording": [
+    "Built a seeded Kafka/local Spark MLlib/EMA placement lab using Redis/HDFS, with validated events and explicit strict/fallback storage policies.",
+    "Verified 148 replay records as 144 accepted, 3 invalid and 1 duplicate; exercised actual HDFS outage and verified-mirror recovery with measured I/O separated from modelled latency."
+  ],
+  "remaining_limits": [
+    "Single-DataNode, unauthenticated loopback-only local lab with a single managed mirror writer.",
+    "WAN/tier delays are modelled; observed tiny-fixture rates are not throughput benchmarks.",
+    "Fair multi-seed/LRU comparison, model persistence, durable replay/checkpoints and broader December recovery remain open.",
+    "No production HA, exactly-once semantics or ML percentage-improvement claim."
+  ]
+}

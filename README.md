@@ -2,6 +2,11 @@
 
 ## December 2026 delivery
 
+**Bounded core audited — 17 November 2026.** The [core acceptance and claim
+ledger](docs/CORE_ACCEPTANCE.md) separates real service evidence, native checks
+and remaining scope. The v0.1.0 tag requires all three jobs of the reviewed
+acceptance commit to pass; fair benchmarks and full v1.0.0 remain December gates.
+
 The December v1 target hardens the existing placement lab with automated tests, strict backend policies and reproducible evaluation. WAN latency remains explicitly modelled.
 
 See the [implementation plan and acceptance checks](docs/IMPLEMENTATION_PLAN.md).
@@ -22,8 +27,8 @@ walkthrough](docs/HDFS_INTEGRATION.md) now passes clean Linux CI. It proves stri
 outage denials, verified-mirror reads, missing/corrupt-mirror rejection and upload/
 readback of an offline-created dataset after the actual Hadoop services restart.
 [Actual JSON/screenshots](docs/hdfs-integration-2026-11-15.json) distinguish this
-from the earlier simulated-cloud replay. Broader recovery/benchmarking and final
-17 November acceptance remain; there is no core/release tag yet.
+from the earlier simulated-cloud replay. The 17 November core audit includes
+these gates; broader recovery/benchmarking remains future scope.
 
 **Big Data Systems — course project**
 *Hadoop HDFS · local Spark SQL · Apache Kafka · Spark MLlib · Redis · Docker*
@@ -64,8 +69,9 @@ to the live workload**.
 - **Place**: the **placement engine** keeps the top-K predicted-hot datasets on the
   edge (promote), and evicts the rest (demote). Every move is counted as migration
   overhead.
-- **Serve**: a request hitting the edge is fast (~2 ms); a miss is served from the
-  cloud (HDFS read **+80 ms** modelled WAN latency) and consumes bandwidth.
+- **Serve**: edge hits use the configured **2 ms modelled tier cost**; misses use
+  the configured **80 ms modelled tier/WAN cost** and consume cloud bandwidth.
+  Actual Redis/HDFS I/O is measured separately and added explicitly.
 
 ## 3. Architecture
 
