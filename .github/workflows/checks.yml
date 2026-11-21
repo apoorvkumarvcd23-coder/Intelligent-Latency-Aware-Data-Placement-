@@ -15,6 +15,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+      - name: Configuration preflight with no runtime or service dependencies
+        run: |
+          python -m venv /tmp/placement-config-only
+          /tmp/placement-config-only/bin/pip install pytest==8.4.1 PyYAML==6.0.1
+          /tmp/placement-config-only/bin/python -m pytest tests/test_config.py -q
+          for profile in config/config.yaml config/core-demo.yaml config/core-hdfs.yaml; do
+            /tmp/placement-config-only/bin/python -m common.check_config --config "$profile"
+          done
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
       - run: python -m compileall -q common services scripts

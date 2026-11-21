@@ -124,3 +124,54 @@ Fair multi-seed/LRU benchmarks, persisted models, broader replay/recovery and fu
 v1 gates follow in December. Final core acceptance is still 17 November, with
 no tag before its clean-clone/evidence audit. Local Docker failure must be repaired
 for local container demos; clean Linux CI evidence does not claim that host repair.
+
+## Configuration preflight — XL01
+
+Validate configuration before starting containers. From the repository root,
+install the existing pinned PyYAML dependency and run:
+
+```sh
+python -m pip install PyYAML==6.0.1
+python -m common.check_config --config config/config.yaml
+python -m common.check_config --config config/core-demo.yaml
+python -m common.check_config --config config/core-hdfs.yaml
+```
+
+No Kafka, Spark, Redis, HDFS, NumPy, Streamlit or Docker installation/service is
+needed for this preflight. Success prints JSON with the backend policy,
+predictor, dataset/cache counts and synthetic payload sizes. It explicitly says
+`connectivity: not checked`; sizes exclude metadata/runtime overhead and do not
+prove available disk or memory. Failure exits 2 with no partial success JSON.
+
+All three services and the CLI use the same loader. Selection order is explicit
+`--config` (service callers use `load_config(path)`), then `PLACEMENT_CONFIG`,
+then `/app/config/config.yaml` if present, otherwise repository
+`config/config.yaml`. A selected unreadable/empty path fails; it never falls
+back to a different file. Errors identify the validation rule without echoing
+YAML source, credentials or file contents.
+
+Files must be UTF-8 YAML mappings of at most 65,536 bytes with exactly the
+supported sections/settings. Mapping keys must be unique at every level,
+including keys introduced by YAML merges: an explicit override of a merged key
+is rejected. Custom Python tags and malformed YAML fail. Numeric values must
+be finite and within the declared bounds; booleans are not numeric settings.
+The shared cross-field contract enforces `top_k <= capacity <= dataset count`,
+hot-set size, decision interval/window, 256 MiB synthetic payload and 128 MiB
+edge payload limits. HDFS endpoints remain credential-free HTTP; supplied
+ports must be integers from 1 through 65,535.
+
+Run only the isolated configuration suite in a fresh environment:
+
+```sh
+python -m venv .venv
+.venv/bin/pip install pytest==8.4.1 PyYAML==6.0.1
+.venv/bin/python -m pytest tests/test_config.py -q
+```
+
+On Windows use `.venv/Scripts/python.exe` and
+`.venv/Scripts/pip.exe`. This suite blocks runtime imports while checking
+the actual repository service loaders and runs actual preflight CLI processes
+against the three profiles. CI performs this minimal-environment check before
+installing the broader unit dependencies, then retains the existing full
+real-service integration gates. Configuration validation alone does not prove
+backend reachability or replace those gates.

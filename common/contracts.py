@@ -10,6 +10,24 @@ from typing import TypedDict
 
 import yaml
 
+MAX_CONFIG_BYTES = 65536
+
+
+class _UniqueKeyLoader(yaml.SafeLoader):
+    """Reject ambiguous mappings, including overrides introduced by YAML merges."""
+    def construct_mapping(self, node, deep=False):
+        self.flatten_mapping(node)
+        keys = set()
+        for key_node, _ in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            try:
+                if key in keys:
+                    raise ContractError('Configuration YAML requires unique mapping keys')
+                keys.add(key)
+            except TypeError:
+                raise ContractError('Configuration YAML requires scalar mapping keys') from None
+        return super().construct_mapping(node, deep=deep)
+
 
 class Config(TypedDict):
     kafka: dict
@@ -88,9 +106,13 @@ def validate_config(raw) -> Config:
     if not (Path(cfg['cloud']['simulated_path']).is_absolute() or PurePosixPath(cfg['cloud']['simulated_path']).is_absolute()):
         raise ContractError('simulated_path must be absolute')
     from urllib.parse import urlsplit
-    url = urlsplit(cfg['cloud']['webhdfs_url'])
-    if url.scheme != 'http' or not url.hostname or url.username or url.password or url.query or url.fragment:
-        raise ContractError('webhdfs_url requires a credential-free HTTP endpoint')
+    try:
+        url = urlsplit(cfg['cloud']['webhdfs_url'])
+        if (url.scheme != 'http' or not url.hostname or url.username or url.password
+                or url.query or url.fragment or (url.port is not None and not 1 <= url.port <= 65535)):
+            raise ValueError('endpoint')
+    except ValueError:
+        raise ContractError('webhdfs_url requires a credential-free HTTP endpoint with a valid port') from None
     for key in ('topic',):
         if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9._-]{0,99}', cfg['kafka'][key]):
             raise ContractError('Unsafe Kafka topic')
@@ -110,13 +132,23 @@ def validate_config(raw) -> Config:
 
 
 def load_config(path=None) -> Config:
-    configured = path or os.environ.get('PLACEMENT_CONFIG')
+    configured = path if path is not None else os.environ.get('PLACEMENT_CONFIG')
     if configured is None:
         configured = '/app/config/config.yaml'
         if not Path(configured).is_file():
             configured = Path(__file__).resolve().parents[1] / 'config/config.yaml'
-    with Path(configured).open(encoding='utf-8') as source:
-        return validate_config(yaml.safe_load(source))
+    try:
+        with Path(configured).open('rb') as source:
+            content = source.read(MAX_CONFIG_BYTES + 1)
+    except (OSError, ValueError, TypeError):
+        raise ContractError('Configuration file must be readable') from None
+    if len(content) > MAX_CONFIG_BYTES:
+        raise ContractError('Configuration file exceeds 65536-byte limit')
+    try:
+        raw = yaml.load(content.decode('utf-8'), Loader=_UniqueKeyLoader)
+    except (UnicodeError, yaml.YAMLError, RecursionError):
+        raise ContractError('Configuration must be valid UTF-8 YAML with unique mapping keys') from None
+    return validate_config(raw)
 
 
 def parse_event(raw, cfg, now):

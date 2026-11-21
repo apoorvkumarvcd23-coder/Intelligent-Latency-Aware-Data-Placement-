@@ -2,10 +2,17 @@
 
 ## December 2026 delivery
 
+**22 November: isolated configuration preflight.** Run
+`python -m common.check_config --config config/core-demo.yaml` before starting
+services. It validates the shared configuration with PyYAML alone, rejects
+duplicate YAML keys and malformed HDFS ports, and reports policy/payload budgets
+without connecting to services. See [usage and validation rules](docs/CORE_RUNBOOK.md#configuration-preflight--xl01)
+and [native verification](docs/config-native-2026-11-22.json).
+
 **Bounded core audited — 17 November 2026.** The [core acceptance and claim
 ledger](docs/CORE_ACCEPTANCE.md) separates real service evidence, native checks
-and remaining scope. The v0.1.0 tag requires all three jobs of the reviewed
-acceptance commit to pass; fair benchmarks and full v1.0.0 remain December gates.
+and remaining scope. The v0.1.0 core tag is available; fair benchmarks and full
+v1.0.0 remain December gates.
 
 The December v1 target hardens the existing placement lab with automated tests, strict backend policies and reproducible evaluation. WAN latency remains explicitly modelled.
 

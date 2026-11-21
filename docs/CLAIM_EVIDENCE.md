@@ -16,6 +16,7 @@ and [runbook](CORE_RUNBOOK.md). Cloud storage for that replay was simulated.
 | Behavior | Code | Executable check |
 | --- | --- | --- |
 | Shared bounded configuration fails before services start | `common/contracts.py`, three compatibility loaders | Invalid types/nonfinite/ranges/policies/keys and cross-field tests |
+| Service-free configuration preflight rejects ambiguous files and malformed endpoints | `common/contracts.py`, `common/check_config.py` | 47 isolated cases in `tests/test_config.py`; clean pytest/PyYAML-only CI environment, actual CLI checks of all three profiles and identical shared loaders |
 | Dataset IDs cannot become traversal paths or Redis key fragments | `dataset_id`, storage/cache boundaries | Invalid IDs and symlink rejection |
 | Strict HDFS never silently switches backend | `CloudStore` | Startup, runtime read/write/list/status failure injection |
 | Auto fallback accepts only verified mirror bytes and verifies recovery before switching | `CloudStore` | Missing/corrupt mirror, unexpected HDFS bytes, partial recovery and created-during-outage tests |
@@ -54,3 +55,11 @@ acceptance commit; manual workflow dispatch now supports repeatable tag/ref chec
 Still open for v1.0.0: fair multi-seed/LRU experiments, model persistence,
 durable replay/checkpoint boundaries and broader recovery/retention. No measured
 improvement claim is earned by the small development trace.
+
+XL01, 22 November: [native verification](config-native-2026-11-22.json) records
+47 configuration tests in an environment with no service clients. The full
+Windows suite passes 109 tests; its one symlink test is skipped because the host
+denies symlink creation. Linux CI runs all 110 cases plus the existing real
+Kafka/Spark MLlib/Redis and real-HDFS replay/outage/browser jobs. Configuration
+preflight checks syntax, numeric/resource compatibility and policy, not service
+connectivity, available memory/disk or benchmark quality.

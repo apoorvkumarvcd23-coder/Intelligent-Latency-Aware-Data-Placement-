@@ -13,6 +13,22 @@ through December; no measured improvement is claimed before the experiment.
 
 ## Source-grounded starting point
 
+### XL01 isolated configuration checks — 22 November 2026
+
+The three existing service loaders already share `common.contracts`; keep that
+single contract. File loading now rejects duplicate/merge-overridden YAML keys,
+files above 65,536 bytes, invalid UTF-8 and unreadable files with bounded,
+source-free errors. HDFS URL ports and malformed bracket syntax fail before
+client construction. Explicit configuration paths override the environment;
+an invalid selected path fails instead of silently selecting another file.
+
+`python -m common.check_config` supplies a read-only preflight using PyYAML
+alone. All three checked-in profiles and 47 isolated configuration cases pass
+in a fresh pytest/PyYAML-only environment. See [the runbook](CORE_RUNBOOK.md#configuration-preflight--xl01)
+and [native evidence](config-native-2026-11-22.json). The full existing real-service
+CI gates remain required. This extends L01; fair benchmarks, persisted models
+and replay/recovery gates remain open for v1. The bounded v0.1.0 tag is available.
+
 ### Core acceptance — 17 November 2026
 
 The [bounded core acceptance/claim ledger](CORE_ACCEPTANCE.md) records native

@@ -1,0 +1,54 @@
+{
+  "source_base": "a975df617d05f057a0aa1352b84f5cedfba29858",
+  "source_note": "Native observations cover XL01 changes in this file history; exact publication commit requires full CI.",
+  "platform": "Windows",
+  "python": "3.12.13",
+  "configuration_environment": "Fresh venv with pytest8.4.1/PyYAML6.0.1 only; no service client packages",
+  "configuration_tests": {
+    "passed": 47,
+    "failed": 0,
+    "skipped": 0
+  },
+  "full_native_suite": {
+    "passed": 109,
+    "failed": 0,
+    "skipped": 1,
+    "skip_reason": "Existing symlink rejection test: host disallows creating symlinks"
+  },
+  "regression_before_fix": "14 of the first43 new cases failed against the original loader (ports, duplicate keys, malformed/unreadable inputs and selection); final suite adds valid oversize rejection and four actual CLI checks.",
+  "actual_preflight_profiles": {
+    "config.yaml": {
+      "backend_policy": "auto",
+      "connectivity": "not checked",
+      "datasets": 200,
+      "edge_capacity": 30,
+      "edge_payload_bytes": 1966080,
+      "predictor": "both",
+      "status": "valid",
+      "synthetic_payload_bytes": 13107200
+    },
+    "core-demo.yaml": {
+      "backend_policy": "simulated",
+      "connectivity": "not checked",
+      "datasets": 8,
+      "edge_capacity": 2,
+      "edge_payload_bytes": 2048,
+      "predictor": "both",
+      "status": "valid",
+      "synthetic_payload_bytes": 8192
+    },
+    "core-hdfs.yaml": {
+      "backend_policy": "hdfs",
+      "connectivity": "not checked",
+      "datasets": 8,
+      "edge_capacity": 2,
+      "edge_payload_bytes": 2048,
+      "predictor": "both",
+      "status": "valid",
+      "synthetic_payload_bytes": 8192
+    }
+  },
+  "compileall": "passed",
+  "compose_config_profiles": 3,
+  "limits": "Native syntax/configuration and isolated behavior only. No current native Kafka/Spark/Redis/HDFS runtime, Docker engine health, available-memory/disk or ML quality claim. Full Linux real-service jobs separately required."
+}
