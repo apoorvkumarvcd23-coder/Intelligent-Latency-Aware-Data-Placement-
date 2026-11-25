@@ -20,6 +20,7 @@ and [runbook](CORE_RUNBOOK.md). Cloud storage for that replay was simulated.
 | Dataset IDs cannot become traversal paths or Redis key fragments | `dataset_id`, storage/cache boundaries | Invalid IDs and symlink rejection |
 | Strict HDFS never silently switches backend | `CloudStore` | Startup, runtime read/write/list/status failure injection |
 | Auto fallback accepts only verified mirror bytes and verifies recovery before switching | `CloudStore` | Missing/corrupt mirror, unexpected HDFS bytes, partial recovery and created-during-outage tests |
+| Recovery requires complete local inventory before dataset uploads, including on restart | `CloudStore._verified_inventory`, `_manifest`, `revalidate` | 17 cases in `tests/test_recovery.py`: missing/empty/duplicate metadata, unlisted/missing/corrupt payloads, later upload interruption, bounded bad read-back, empty payload, candidates and strict-policy isolation; actual `demo_hdfs.py` checks restart denials and a server-side canary during failed preflight |
 | Redis membership/data changes are atomic and capacity is bounded | `EdgeCache` Lua | Concurrent writers, missing bytes, orphan keys and count checks; real Redis demo |
 | Source read failure preserves the previous edge set | `PlacementEngine.reconcile` | Prepare-before-evict failure regression |
 | Each miss performs current I/O; modelled tier latency is separately labelled | `serve`, `DecisionLoop`, dashboard | Changed bytes/repeated miss checks and exact metric decomposition |
@@ -63,3 +64,14 @@ denies symlink creation. Linux CI runs all 110 cases plus the existing real
 Kafka/Spark MLlib/Redis and real-HDFS replay/outage/browser jobs. Configuration
 preflight checks syntax, numeric/resource compatibility and policy, not service
 connectivity, available memory/disk or benchmark quality.
+
+XL02, 26 November: [native verification](recovery-native-2026-11-26.json)
+records 126 passing Windows tests and the existing symlink-permission skip;
+Linux runs all 127 cases. Recovery validates the entire mirror before the first
+dataset upload and verifies each uploaded file before switching backend. Failed
+uploads may leave partial HDFS files, while the client stays degraded and uses
+verified local bytes; retry reconciles all files. The live Hadoop CI drill now
+requires missing/empty metadata and unlisted-payload restart denials, plus a
+server-side canary proving a later corrupt local mirror prevents earlier uploads.
+Native fault adapters are separate from actual Hadoop CI evidence. This is a
+single-writer recovery policy, not a cross-file atomic transaction or HA claim.

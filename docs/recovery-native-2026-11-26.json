@@ -1,0 +1,41 @@
+{
+  "status": "passed",
+  "recorded_at_utc": "2026-11-25T19:17:55.127749+00:00",
+  "source_base": "e797f1f6647785e8177beb6eea171a9fcca8ce83",
+  "scope": "XL02 single-writer mirror consistency and HDFS recovery policy",
+  "platform": "Windows",
+  "python": "3.12.13",
+  "tests": {
+    "passed": 126,
+    "skipped": 1,
+    "failures": 0,
+    "errors": 0,
+    "new_recovery_cases": 17,
+    "skip": "Existing Windows symlink-creation permission case; Linux CI executes it"
+  },
+  "compileall": "common/services/scripts passed",
+  "compose_config": [
+    "docker-compose.yml",
+    "compose.core-demo.yml",
+    "compose.hdfs-demo.yml"
+  ],
+  "verified_behaviors": [
+    "Restart and explicit recovery reject missing/empty metadata with local data, unlisted payloads, missing files and later corrupt mirrors before any dataset upload",
+    "Duplicate metadata keys and empty digest-bound payloads fail closed",
+    "Interrupted second upload preserves local verified bytes and degraded state; restart retries complete inventory",
+    "Read-back comparison uses at most 1 MiB plus 1 byte and prevents activation on mismatched bytes",
+    "Uncommitted atomic candidates are ignored, retained and never uploaded",
+    "Strict HDFS runtime failures never fall back or mutate local mirror data"
+  ],
+  "reproduce": [
+    "python -m pip install -r requirements-dev.txt",
+    "python -m pytest -q",
+    "python -m pytest tests/test_recovery.py -q",
+    "python -m compileall -q common services scripts",
+    "docker compose config --quiet",
+    "docker compose -f compose.core-demo.yml config --quiet",
+    "docker compose -f compose.hdfs-demo.yml config --quiet"
+  ],
+  "real_hdfs_integration": "Separate exact-commit Linux CI job exercises actual Hadoop stop/start, inventory restart denials, unchanged server-side canary, replay and browser states. Native fault adapters do not count as real HDFS proof.",
+  "limits": "Single managed writer; preflight is fail closed, not an atomic multi-file transaction. Failed remote uploads may change HDFS before retry. No background repair, concurrent external-writer merge, native service-runtime proof, fair benchmark, measured WAN, ML quality or full v1 release claim."
+}

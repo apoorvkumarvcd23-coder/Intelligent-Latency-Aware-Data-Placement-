@@ -118,10 +118,31 @@ def demonstrate(cfg,control):
         signal('outage',{'strict_denials':strict_failures,'missing_mirror_denied':missing_denied,
                          'corrupt_mirror_denied':corrupt_denied,'offline_write_verified':True})
         wait_for(control/'recovery-now')
+        # A canary in actual HDFS proves failed preflight performs no dataset uploads.
+        canary=b'actual-hdfs-preflight-canary'
+        strict.write('ds_0001',canary)
+        assert strict.read('ds_0001')==canary
+        manifest_path=auto.sim_path/'.mirror.json'
+        saved_manifest=manifest_path.read_bytes()
+        inventory_denials={}
+        orphan=auto.sim_path/'ds_0011'
+        for fault in ['missing-manifest','empty-manifest','unlisted-payload']:
+            try:
+                if fault=='missing-manifest': manifest_path.unlink()
+                elif fault=='empty-manifest': manifest_path.write_text('{}')
+                else: orphan.write_bytes(b'partial-uncommitted-local-write')
+                restarted=CloudStore(cfg)
+                inventory_denials[fault]=(restarted.backend=='simulated' and restarted.degraded)
+                assert inventory_denials[fault]
+                assert strict.read('ds_0001')==canary
+            finally:
+                manifest_path.write_bytes(saved_manifest)
+                orphan.unlink(missing_ok=True)
         # A bad mirror must not be promoted even when the actual HDFS service returns.
         mirror.write_bytes(b'corrupt-before-recovery')
         try:
             assert not auto.revalidate() and auto.backend=='simulated' and auto.degraded
+            assert strict.read('ds_0001')==canary
         finally: mirror.write_bytes(saved)
         assert auto.revalidate() and auto.backend=='hdfs' and not auto.degraded
         for ds,data in expected.items():
@@ -136,6 +157,9 @@ def demonstrate(cfg,control):
             'verified_mirror_reads_during_outage':True,'missing_mirror_denied':missing_denied,
             'corrupt_mirror_denied':corrupt_denied,'offline_write_uploaded_and_read_back':True,
             'corrupt_mirror_prevented_recovery_activation':True,
+            'restart_inventory_denials':inventory_denials,
+            'invalid_inventory_preserved_actual_hdfs_canary':True,
+            'later_corrupt_mirror_prevented_earlier_dataset_upload':True,
             'same_clients_used_across_actual_service_restart':True,
             'verified_hdfs_sha256':{ds:hashlib.sha256(data).hexdigest() for ds,data in expected.items()},
             'spark_version':spark.version,'snapshots':snapshots,

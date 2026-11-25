@@ -13,6 +13,20 @@ through December; no measured improvement is claimed before the experiment.
 
 ## Source-grounded starting point
 
+### XL02 mirror consistency and recovery — 26 November 2026
+
+L02 recovery now checks exact managed-file/manifest inventory and every bounded
+payload before the first dataset upload. Startup uses the same gate; missing or
+empty metadata cannot silently bypass reconciliation. Duplicate metadata keys,
+empty payloads and bounded bad read-back fail closed. Interrupted later uploads
+keep verified local data available in degraded mode; retry reconciles all files.
+Strict HDFS behavior remains isolated from local state. See [the operational
+contract](CORE_RUNBOOK.md#mirror-recovery--xl02), [claim ledger](CLAIM_EVIDENCE.md)
+and [native evidence](recovery-native-2026-11-26.json). The real-HDFS CI drill adds
+restart denials and a server-side canary to verify no earlier dataset upload on
+failed preflight. Full real-service CI remains required. This does not make
+recovery a distributed transaction or complete L05/L07/L08 and v1 release gates.
+
 ### XL01 isolated configuration checks — 22 November 2026
 
 The three existing service loaders already share `common.contracts`; keep that

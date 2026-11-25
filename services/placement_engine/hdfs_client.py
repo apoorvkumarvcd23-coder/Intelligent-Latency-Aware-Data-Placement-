@@ -31,13 +31,12 @@ class CloudStore:
         self._size_cache = {}
         if self.policy != 'hdfs':
             self.sim_path.mkdir(parents=True, exist_ok=True)
-        if self.policy != 'simulated':
+        if self.policy == 'auto':
+            self.revalidate()  # Empty/missing metadata must not hide unmanaged local datasets.
+        elif self.policy == 'hdfs':
             if self._probe_hdfs():
-                if self.policy == 'auto' and self._manifest():
-                    self.revalidate()  # restart must reconcile offline-created mirror data too
-                else:
-                    self.backend, self.degraded = 'hdfs', False
-            elif self.policy == 'hdfs':
+                self.backend, self.degraded = 'hdfs', False
+            else:
                 raise StorageUnavailable('Strict HDFS policy requires reachable HDFS')
 
     def _probe_hdfs(self):
@@ -77,7 +76,14 @@ class CloudStore:
         try:
             if path.stat().st_size > 1_000_000:
                 raise ValueError()
-            data = json.loads(path.read_text())
+            def unique_keys(pairs):
+                result = {}
+                for key, value in pairs:
+                    if key in result:
+                        raise ValueError()
+                    result[key] = value
+                return result
+            data = json.loads(path.read_text(encoding='utf-8'), object_pairs_hook=unique_keys)
             if not isinstance(data, dict):
                 raise ValueError()
             for key, value in data.items():
@@ -106,18 +112,32 @@ class CloudStore:
         manifest[ds] = hashlib.sha256(data).hexdigest()
         self._atomic(self.sim_path / '.mirror.json', json.dumps(manifest, sort_keys=True).encode())
 
-    def _read_mirror(self, ds):
+    def _read_mirror(self, ds, manifest=None):
         try:
-            expected = self._manifest().get(ds)
+            expected = (self._manifest() if manifest is None else manifest).get(ds)
             with self._sim_path(ds).open('rb') as source:
                 data = source.read(1024**2+1)
-            if len(data)>1024**2:
-                raise StorageUnavailable('Mirror exceeds dataset byte budget')
+            if not data or len(data)>1024**2:
+                raise StorageUnavailable('Mirror is outside the dataset byte budget')
             if expected is None or hashlib.sha256(data).hexdigest() != expected:
                 raise StorageUnavailable('Missing or corrupt verified mirror')
             return data
         except OSError:
             raise StorageUnavailable('Missing or unreadable verified mirror') from None
+
+    def _verified_inventory(self):
+        manifest = self._manifest()
+        datasets = set()
+        for path in self.sim_path.iterdir():
+            try:
+                datasets.add(dataset_id(path.name))
+            except ContractError:
+                continue  # Unrelated files and atomic-write candidates are never promoted.
+        if datasets != set(manifest):
+            raise StorageUnavailable('Mirror inventory differs from verified metadata')
+        for ds in sorted(manifest):
+            self._read_mirror(ds, manifest)
+        return manifest
 
     def revalidate(self):
         if self.policy == 'simulated' or self.backend == 'hdfs':
@@ -125,12 +145,13 @@ class CloudStore:
         if not self._probe_hdfs():
             return False
         try:
-            for ds in sorted(self._manifest()):
-                data = self._read_mirror(ds)
+            manifest = self._verified_inventory()
+            for ds in sorted(manifest):
+                data = self._read_mirror(ds, manifest)
                 path = self._hdfs_path(ds)
                 self._client.write(path, data=data, overwrite=True)
                 with self._client.read(path) as source:
-                    if source.read() != data:
+                    if source.read(1024**2+1) != data:
                         raise StorageUnavailable('HDFS recovery verification failed')
             self.backend, self.degraded = 'hdfs', False
             return True

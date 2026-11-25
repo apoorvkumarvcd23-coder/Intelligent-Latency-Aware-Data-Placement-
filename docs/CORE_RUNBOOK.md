@@ -1,5 +1,40 @@
 # Placement core: reproducible safety and integration
 
+## Mirror recovery — XL02
+
+The `auto` policy starts degraded until `revalidate()` completes, including on
+process restart. A new empty mirror can activate reachable HDFS. When local
+dataset files exist, their exact safe-ID inventory must match `.mirror.json`;
+missing/empty metadata, duplicate JSON keys, unlisted payloads, absent registered
+files, empty/oversized bytes and checksum mismatches prevent recovery. Unrelated
+files and dot-prefixed atomic-write candidates are ignored and never uploaded.
+
+Recovery first validates every managed mirror using one manifest snapshot,
+without retaining the whole corpus in memory. Only then does it upload datasets
+in sorted ID order and read each back with the 1 MiB + 1 byte limit. The client
+switches to HDFS only after all comparisons succeed. Startup follows the same
+path, so incomplete metadata cannot bypass the recovery gate. Strict `hdfs`
+policy does not inspect or write the local mirror and never silently falls back.
+
+If a remote upload or its verification fails, the backend remains degraded and
+verified local bytes stay readable. Already attempted HDFS files may have changed;
+this is not an atomic multi-file transaction. Retry uploads and verifies the
+complete inventory again. There is one managed writer and no concurrent external
+writer reconciliation or automatic repair of untrusted bytes.
+
+On a failed inventory check, preserve the local files for investigation. Restore
+known data/metadata from a separately verified copy, or move an investigated
+uncommitted payload outside the managed mirror. Do not bless unknown bytes by
+rebuilding the checksum manifest from them. Then retry `revalidate()` explicitly;
+there is no background probe, automatic deletion or promotion of candidate files.
+
+Run `python -m pytest tests/test_recovery.py -q` for 17 fault-injection cases.
+The [native report](recovery-native-2026-11-26.json) separates these adapters from
+real integration. The [live HDFS walkthrough](HDFS_INTEGRATION.md) checks actual
+Hadoop stop/start, restart inventory denials and unchanged server-side canary
+bytes when a later local mirror is corrupt. Its CI job must pass before counting
+that integration as verified. Fair benchmarks and full December v1 remain open.
+
 ## Verified 12 November 2026 IST
 
 [Clean-checkout CI](https://github.com/apoorvkumarvcd23-coder/Intelligent-Latency-Aware-Data-Placement-/actions/runs/43089970944)

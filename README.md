@@ -2,6 +2,14 @@
 
 ## December 2026 delivery
 
+**26 November: complete mirror inventory before HDFS recovery.** Auto recovery
+rejects missing/empty metadata with local datasets, unlisted payloads and damaged
+later mirrors before any dataset upload. Startup uses the same gate; activation
+requires bounded read-back verification of every upload. Strict mode still never
+uses local fallback. See [recovery rules](docs/CORE_RUNBOOK.md#mirror-recovery--xl02)
+and [native checks](docs/recovery-native-2026-11-26.json). The real-HDFS CI drill
+also checks restart denials and preservation of an actual server-side canary.
+
 **22 November: isolated configuration preflight.** Run
 `python -m common.check_config --config config/core-demo.yaml` before starting
 services. It validates the shared configuration with PyYAML alone, rejects

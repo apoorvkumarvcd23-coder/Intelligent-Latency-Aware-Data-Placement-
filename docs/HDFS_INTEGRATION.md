@@ -66,13 +66,23 @@ invalid records and one duplicate. The storage drill separately:
    a new synthetic dataset offline. Actual decision cycles publish degraded
    metrics to real Redis; Chromium checks the degraded dashboard badge.
 5. Starts the same Hadoop services/volumes, waits for health and safe-mode exit,
-   and proves a corrupt mirror prevents recovery activation. After repair,
+   and proves missing/empty metadata or an unlisted local payload prevents a
+   restarted auto client from activating HDFS. A known canary in actual HDFS
+   must remain unchanged through each denial. A corrupt later mirror must also
+   prevent uploads of earlier datasets, not merely block final activation. After repair,
    explicit `revalidate()` uploads and reads back every managed dataset.
 6. Verifies the offline-created file through the original strict client and
    records recovered decision metrics and a real browser screenshot.
 
 The report is `artifacts/hdfs-drill.json`, with actual data hashes, strict
 denials, recovery flags, Hadoop/Spark versions and all four decision snapshots.
+The XL02 `restart_inventory_denials`,
+`invalid_inventory_preserved_actual_hdfs_canary` and
+`later_corrupt_mirror_prevented_earlier_dataset_upload` fields record the added
+checks. These use the actual WebHDFS clients and filesystem faults, not an HDFS
+adapter or patched network response. A partial remote upload/read-back fault is
+separately injected in unit tests; the live drill does not claim to interrupt an
+individual upload at an arbitrary byte boundary.
 Four snapshots include healthy warm-up, healthy, degraded and recovered cycles.
 Screenshots show healthy, degraded and recovered states. The `hdfs-integration`
 CI job reproduces the clean-checkout path and uploads public synthetic evidence.
